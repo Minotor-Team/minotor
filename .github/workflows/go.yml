@@ -12,6 +12,7 @@ on:
 jobs:
 
   build:
+    name: build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -23,32 +24,50 @@ jobs:
     
     - name: Setup test
       run: make setbin
-
-    - name: Test lint
-      run: make lint
-
-    - name: Test unit HW0
-      run: make test_unit_hw0
-      
-    - name: Test integration HW0
-      run: make test_int_hw0
-    
-    - name: Test unit HW1
-      run: make test_unit_hw1
-      
-    - name: Test integration HW1
-      run: make test_int_hw1
-      
-    - name: Test unit HW2
-      run: make test_unit_hw2
-    
-    - name: Test integration HW2
-      run: make test_int_hw2
-      
-    - name: Test unit HW3
-      run: make test_unit_hw3
   
-    - name: Test integration HW3
-      run: make test_int_hw3
+  # lint:
+  #   name: Test lint
+  #   needs: build
+  #     run: make lint
+
+  test_unit_hw0:
+    name: Test unit HW0
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test unit HW0
+        run: make test_unit_hw0
+
+  test_int_hw0:
+    name: Test integration HW0
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test integration HW0
+        run: make test_int_hw0
+
+  # test_unit_hw1:
+  #   - name: Test unit HW1
+  #     run: make test_unit_hw1
+
+  # test_int_hw1:
+  #   - name: Test integration HW1
+  #     run: make test_int_hw1
+
+  # test_unit_hw1:   
+  #   - name: Test unit HW2
+  #     run: make test_unit_hw2
+  
+  # test_int_hw2:  
+  #   - name: Test integration HW2
+  #     run: make test_int_hw2
+
+  # test_unit_hw3:    
+  #   - name: Test unit HW3
+  #     run: make test_unit_hw3
+  
+  # test_int_hw3:
+  #   - name: Test integration HW3
+  #     run: make test_int_hw3
     
     
