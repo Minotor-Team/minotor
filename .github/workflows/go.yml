@@ -1,6 +1,3 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
 name: CI
 
 on:
@@ -21,14 +18,15 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: 1.19
-    
-    - name: Setup test
-      run: make setbin
-  
-  # lint:
-  #   name: Test lint
-  #   needs: build
-  #     run: make lint
+
+  lint:
+    name: Test lint
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test lint
+        run: make make lint
 
   test_unit_hw0:
     name: Test unit HW0
@@ -46,30 +44,66 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Test integration HW0
-        run: make test_int_hw0
+        run: |
+          make setbin
+          make test_int_hw0
 
-  # test_unit_hw1:
-  #   - name: Test unit HW1
-  #     run: make test_unit_hw1
+  test_unit_hw1:
+    name: Test unit HW1
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test unit HW1
+        run: make test_unit_hw1
 
-  # test_int_hw1:
-  #   - name: Test integration HW1
-  #     run: make test_int_hw1
-
-  # test_unit_hw1:   
-  #   - name: Test unit HW2
-  #     run: make test_unit_hw2
+  test_int_hw1:
+    name: Test integration HW1
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test integration HW1
+        run: |
+          make setbin
+          make test_int_hw1
   
-  # test_int_hw2:  
-  #   - name: Test integration HW2
-  #     run: make test_int_hw2
+  test_unit_hw2:
+    name: Test unit HW2
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test unit HW2
+        run: make test_unit_hw2
 
-  # test_unit_hw3:    
-  #   - name: Test unit HW3
-  #     run: make test_unit_hw3
-  
-  # test_int_hw3:
-  #   - name: Test integration HW3
-  #     run: make test_int_hw3
-    
-    
+  test_int_hw2:
+    name: Test integration HW2
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test integration HW2
+        run: |
+          make setbin
+          make test_int_hw2
+
+  test_unit_hw3:
+    name: Test unit HW3
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test unit HW3
+        run: make test_unit_hw3
+
+  test_int_hw3:
+    name: Test integration HW3
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test integration HW3
+        run: |
+          make setbin
+          make test_int_hw3
