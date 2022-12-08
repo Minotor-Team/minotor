@@ -35,6 +35,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Test unit HW0
         run: make test_unit_hw0
 
@@ -43,6 +44,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Test integration HW0
         run: make test_int_hw0
 
