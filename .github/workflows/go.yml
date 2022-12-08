@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Test lint
-        run: make make lint
+        run: make lint
 
   test_unit_hw0:
     name: Test unit HW0
