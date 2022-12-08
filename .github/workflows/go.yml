@@ -19,8 +19,6 @@ jobs:
           go-version: 1.19
       - name: Test lint
         run: make lint
-        with:
-          go-version: 1.19
 
   test_unit_hw0:
     name: Test unit HW0
