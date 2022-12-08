@@ -83,7 +83,7 @@ jobs:
 
   test_int_hw2:
     name: Test integration HW2
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04-16core
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
