@@ -2,7 +2,7 @@
 
 ### Deadline : Jan 16th, 2023
 
-### Team MinoTor members
+### Team Minotor members
 
 | Name              | Email                     |
 |-------------------|---------------------------|
