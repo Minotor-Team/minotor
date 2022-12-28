@@ -398,15 +398,72 @@ class Packets extends BaseElement {
                 el.classList.add("received");
             }
 
-            // note that this is not secure and prone to XSS attack.
-            el.innerHTML = `<div><p class="msg">${pkt.Msg.Payload.Message}</p><p class="details">from ${pkt.Header.Source} at ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</p></div>`;
+            function handleLikeClick() {
+                likeCount++;
+                likeValue.innerText = likeCount;
+                likeButt.removeEventListener('click', handleLikeClick);
+            }
+            function handleDisLikeClick() {
+                dislikeCount++;
+                dislikeValue.innerText = dislikeCount;
+                dislikeButt.removeEventListener('click', handleDisLikeClick);
+            }
+            let likeCount = 0
+            let dislikeCount = 0
+            const container = document.createElement('div');
+            container.style.display = 'flex';  // set the display property to flex
+            container.style.justifyContent = 'space-between';  // distribute the items evenly along the main axis
 
+            const size = '20px'
+            const likeButt = document.createElement('button');
+            likeButt.style.height = size;
+            likeButt.style.width = size;
+            likeButt.style.display = 'flex';  // set the display property to flex
+            likeButt.style.alignItems = 'center';  // center the items vertically
+            likeButt.style.justifyContent = 'center';  // center the items horizontally
+            likeButt.style.value
+            likeButt.addEventListener('click', handleLikeClick);
+            const likeImg = document.createElement('img');
+            likeImg.src = './icons8-red-heart-96.png';
+            likeImg.style.height = size;
+            likeImg.style.width = size;
+            likeButt.appendChild(likeImg);
+
+            const dislikeButt = document.createElement('button');
+            dislikeButt.style.height = size;
+            dislikeButt.style.width = size;
+            dislikeButt.style.display = 'flex';  // set the display property to flex
+            dislikeButt.style.alignItems = 'center';  // center the items vertically
+            dislikeButt.style.justifyContent = 'center';  // center the items horizontally
+            dislikeButt.addEventListener('click', handleDisLikeClick);
+            const dislikeImg = document.createElement('img');
+            dislikeImg.style.height = size;
+            dislikeImg.style.width = size;
+            dislikeImg.src = './icons8-broken-heart-96.png';
+            dislikeButt.appendChild(dislikeImg);
+
+            const likeValue = document.createElement('span');
+            likeValue.style.marginRight = '15px'
+
+            const dislikeValue = document.createElement('span');
+
+            container.appendChild(likeButt)
+            container.appendChild(likeValue)
+            container.appendChild(dislikeButt)
+            container.appendChild(dislikeValue)
+
+            // note that this is not secure and prone to XSS attack.
+            // displays only the last 5 digits of the IP address for better readability.
+            el.innerHTML = `<div><p class="msg">${pkt.Msg.Payload.Message}</p><p class="details">from 
+            <span class="ip-addr"> ${pkt.Header.Source.slice(-5)} </span> at ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</p></div>`;
+
+
+            el.appendChild(container)
             this.messagingController.addMsg(el);
         }
 
         const el = document.createElement("div");
         el.innerHTML = `<pre>${JSON.stringify(pkt, null, 2)}</pre>`;
-
         this.packetsTarget.append(el);
 
         this.scrollTarget.style.width = this.packetsTarget.scrollWidth + "px";

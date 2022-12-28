@@ -1,3 +1,8 @@
+.ip-addr {
+    font-size: larger;
+    color: black;
+}
+
 div.messaging {
     padding: 30px 10px 10px 10px;
     max-width: 500px;
@@ -6,11 +11,12 @@ div.messaging {
 
 div.messaging .holder {
     max-height: 300px;
-    overflow: auto;
+    overflow-y: auto;
 }
 
 div.messaging .chat-messages {
     padding: 20px 0 0 0;
+
 }
 
 div.messaging .chat-messages>div {
@@ -39,6 +45,7 @@ div.messaging .chat-messages>div>div p.msg {
     padding: 10px 15px;
     font-weight: 100;
 }
+
 
 div.messaging .chat-messages>div>div p.details {
     font-size: 10px;
