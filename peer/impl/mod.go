@@ -66,6 +66,8 @@ type node struct {
 	store           *store
 	searchsHandler  *channelsHandler
 	paxosHandler    *paxosHandler
+	// reputation !
+	reputation *types.ReputationValue
 }
 
 type void struct{}
