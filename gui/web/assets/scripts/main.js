@@ -370,6 +370,7 @@ class Routing extends BaseElement {
     }
 }
 
+var nbMsg = 0;
 class Packets extends BaseElement {
     static get targets() {
         return ["follow", "holder", "scroll", "packets"];
@@ -398,14 +399,46 @@ class Packets extends BaseElement {
                 el.classList.add("received");
             }
 
+            // server
+            let ws;
+
+            function init() {
+                if (ws) {
+                    ws.onerror = ws.onopen = ws.onclose = null;
+                    ws.close();
+                }
+
+                ws = new WebSocket('ws://localhost:6969');
+                ws.onopen = () => {
+                    console.log('Connection opened!');
+                }
+                ws.onmessage = (event) => {
+                    event.data.text().then((text) => {
+                        const data = JSON.parse(text);
+                        showLikes(data[0], data[1]);
+                    });
+                }
+                ws.onclose = function () {
+                    ws = null;
+                }
+            }
+
+            // ------------ end server ------------ 
+
             function handleLikeClick() {
+                console.log(likeButt.id);
+                document.getElementById('val' + likeButt.id).innerText
                 likeCount++;
-                likeValue.innerText = likeCount;
+                const likeDislikes = Array.of(likeCount, dislikeCount);
+                ws.send(JSON.stringify(likeDislikes));
+                showLikes(likeDislikes[0], likeDislikes[1]);
                 likeButt.removeEventListener('click', handleLikeClick);
             }
             function handleDisLikeClick() {
                 dislikeCount++;
-                dislikeValue.innerText = dislikeCount;
+                const likeDislikes = Array.of(likeCount, dislikeCount);
+                ws.send(JSON.stringify(likeDislikes));
+                showLikes(likeDislikes[0], likeDislikes[1]);
                 dislikeButt.removeEventListener('click', handleDisLikeClick);
             }
             let likeCount = 0
@@ -416,6 +449,7 @@ class Packets extends BaseElement {
 
             const size = '20px'
             const likeButt = document.createElement('button');
+            likeButt.id = '0' + nbMsg.toString();
             likeButt.style.height = size;
             likeButt.style.width = size;
             likeButt.style.display = 'flex';  // set the display property to flex
@@ -430,6 +464,7 @@ class Packets extends BaseElement {
             likeButt.appendChild(likeImg);
 
             const dislikeButt = document.createElement('button');
+            dislikeButt.id = '1' + nbMsg.toString();
             dislikeButt.style.height = size;
             dislikeButt.style.width = size;
             dislikeButt.style.display = 'flex';  // set the display property to flex
@@ -443,9 +478,18 @@ class Packets extends BaseElement {
             dislikeButt.appendChild(dislikeImg);
 
             const likeValue = document.createElement('span');
+            likeValue.id = 'val0' + nbMsg.toString();
             likeValue.style.marginRight = '15px'
 
             const dislikeValue = document.createElement('span');
+            dislikeValue.id = 'val1' + nbMsg.toString();
+
+
+            function showLikes(nbLikes, nbDisLikes) {
+                likeValue.innerText = nbLikes;
+                dislikeValue.innerText = nbDisLikes;
+            }
+            init();
 
             container.appendChild(likeButt)
             container.appendChild(likeValue)
@@ -457,9 +501,10 @@ class Packets extends BaseElement {
             el.innerHTML = `<div><p class="msg">${pkt.Msg.Payload.Message}</p><p class="details">from 
             <span class="ip-addr"> ${pkt.Header.Source.slice(-5)} </span> at ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</p></div>`;
 
-
-            el.appendChild(container)
+            el.appendChild(container);
             this.messagingController.addMsg(el);
+            nbMsg++;
+            container.setAttribute('id', nbMsg);
         }
 
         const el = document.createElement("div");
