@@ -415,7 +415,8 @@ class Packets extends BaseElement {
                 ws.onmessage = (event) => {
                     event.data.text().then((text) => {
                         const data = JSON.parse(text);
-                        showLikes(data[0], data[1]);
+                        console.log(data)
+                        showLikes(data[0], data[1], data[2], data[3]);
                     });
                 }
                 ws.onclose = function () {
@@ -423,26 +424,41 @@ class Packets extends BaseElement {
                 }
             }
 
+            function showLikes(nbLikes, nbDisLikes, likeValueID, dislikeValueID) {
+                document.getElementById(likeValueID).innerText = nbLikes;
+                document.getElementById(dislikeValueID).innerText = nbDisLikes;
+            }
+            init();
+
             // ------------ end server ------------ 
 
             function handleLikeClick() {
-                console.log(likeButt.id);
-                document.getElementById('val' + likeButt.id).innerText
-                likeCount++;
-                const likeDislikes = Array.of(likeCount, dislikeCount);
+                const likeElem = document.getElementById('val' + likeButt.id)
+                let currLikesNb = likeElem.innerText
+                currLikesNb = Number(currLikesNb);
+                currLikesNb++;
+                likeElem.innerText = currLikesNb;
+                const dislikeButtID = likeButt.id.replace(/0/, "1")
+                const currDisLikesNb = document.getElementById('val' + dislikeButtID).innerText
+                const likeDislikes = Array.of(currLikesNb, currDisLikesNb, 'val' + likeButt.id, 'val' + dislikeButtID);
                 ws.send(JSON.stringify(likeDislikes));
-                showLikes(likeDislikes[0], likeDislikes[1]);
+                showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3]);
                 likeButt.removeEventListener('click', handleLikeClick);
             }
             function handleDisLikeClick() {
-                dislikeCount++;
-                const likeDislikes = Array.of(likeCount, dislikeCount);
+                const dislikeElem = document.getElementById('val' + dislikeButt.id)
+                let currDisLikesNb = dislikeElem.innerText
+                currDisLikesNb = Number(currDisLikesNb)
+                currDisLikesNb++
+                dislikeElem.innerText = currDisLikesNb;
+                const likeButtID = dislikeButt.id.replace(/1/, "0")
+                const currLikesNb = document.getElementById('val' + likeButtID).innerText
+                const likeDislikes = Array.of(currLikesNb, currDisLikesNb, 'val' + likeButtID, 'val' + dislikeButt.id);
                 ws.send(JSON.stringify(likeDislikes));
-                showLikes(likeDislikes[0], likeDislikes[1]);
+                showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3]);
                 dislikeButt.removeEventListener('click', handleDisLikeClick);
             }
-            let likeCount = 0
-            let dislikeCount = 0
+
             const container = document.createElement('div');
             container.style.display = 'flex';  // set the display property to flex
             container.style.justifyContent = 'space-between';  // distribute the items evenly along the main axis
@@ -479,17 +495,10 @@ class Packets extends BaseElement {
 
             const likeValue = document.createElement('span');
             likeValue.id = 'val0' + nbMsg.toString();
-            likeValue.style.marginRight = '15px'
+            likeValue.style.marginRight = '15px';
 
             const dislikeValue = document.createElement('span');
             dislikeValue.id = 'val1' + nbMsg.toString();
-
-
-            function showLikes(nbLikes, nbDisLikes) {
-                likeValue.innerText = nbLikes;
-                dislikeValue.innerText = nbDisLikes;
-            }
-            init();
 
             container.appendChild(likeButt)
             container.appendChild(likeValue)
