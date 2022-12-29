@@ -13,20 +13,21 @@ import (
 func NewPeer(conf peer.Configuration) peer.Peer {
 
 	node := &node{
-		wg:              sync.WaitGroup{},
-		run:             uint32(0),
-		stopChannel:     make(chan struct{}),
-		conf:            conf,
-		soc:             conf.Socket,
-		reg:             conf.MessageRegistry,
-		routingTable:    newNodeRT(),
-		rumorsHandler:   newRumorsHandler(),
-		acksHandler:     newChannelsHandler(),
-		catalog:         newCatalog(),
-		requestsHandler: newChannelsHandler(),
-		store:           newStore(),
-		searchsHandler:  newChannelsHandler(),
-		paxosHandler:    newPaxosHandler(conf),
+		wg:                sync.WaitGroup{},
+		run:               uint32(0),
+		stopChannel:       make(chan struct{}),
+		conf:              conf,
+		soc:               conf.Socket,
+		reg:               conf.MessageRegistry,
+		routingTable:      newNodeRT(),
+		rumorsHandler:     newRumorsHandler(),
+		acksHandler:       newChannelsHandler(),
+		catalog:           newCatalog(),
+		requestsHandler:   newChannelsHandler(),
+		store:             newStore(),
+		searchsHandler:    newChannelsHandler(),
+		paxosHandler:      newPaxosHandler(conf),
+		messageReputation: map[uint][]uint{},
 	}
 
 	myAddr := node.soc.GetAddress()
@@ -46,6 +47,9 @@ func NewPeer(conf peer.Configuration) peer.Peer {
 	node.reg.RegisterMessageCallback(types.PaxosPromiseMessage{}, node.ExecPaxosPromiseMessage)
 	node.reg.RegisterMessageCallback(types.PaxosAcceptMessage{}, node.ExecPaxosAcceptMessage)
 	node.reg.RegisterMessageCallback(types.TLCMessage{}, node.ExecTLCMessage)
+
+	// reputation
+	// node.reg.RegisterMessageCallback(types.ScoreMessage{}, node.ExecScoreMessage)
 
 	return node
 }
@@ -67,7 +71,8 @@ type node struct {
 	searchsHandler  *channelsHandler
 	paxosHandler    *paxosHandler
 	// reputation !
-	reputation *types.ReputationValue
+	reputation        *types.ReputationValue
+	messageReputation map[uint][]uint
 }
 
 type void struct{}

@@ -36,6 +36,7 @@ func (n *node) Unicast(dest string, msg transport.Message) error {
 
 // broadcasts given message
 func (n *node) Broadcast(msg transport.Message) error {
+
 	myAddr := n.soc.GetAddress()
 
 	// create rumors header, message and then packet

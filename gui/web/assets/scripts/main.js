@@ -415,7 +415,6 @@ class Packets extends BaseElement {
                 ws.onmessage = (event) => {
                     event.data.text().then((text) => {
                         const data = JSON.parse(text);
-                        console.log(data)
                         showLikes(data[0], data[1], data[2], data[3]);
                     });
                 }
@@ -433,6 +432,7 @@ class Packets extends BaseElement {
             // ------------ end server ------------ 
 
             function handleLikeClick() {
+                console.log(container.id)
                 const likeElem = document.getElementById('val' + likeButt.id)
                 let currLikesNb = likeElem.innerText
                 currLikesNb = Number(currLikesNb);
@@ -444,6 +444,8 @@ class Packets extends BaseElement {
                 ws.send(JSON.stringify(likeDislikes));
                 showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3]);
                 likeButt.removeEventListener('click', handleLikeClick);
+
+                // TODO send Like Msg to container id (IP of the node who created the message)
             }
             function handleDisLikeClick() {
                 const dislikeElem = document.getElementById('val' + dislikeButt.id)
@@ -457,6 +459,9 @@ class Packets extends BaseElement {
                 ws.send(JSON.stringify(likeDislikes));
                 showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3]);
                 dislikeButt.removeEventListener('click', handleDisLikeClick);
+
+                // TODO send DisLike Msg to container id (IP of the node who created the message)
+
             }
 
             const container = document.createElement('div');
@@ -513,7 +518,9 @@ class Packets extends BaseElement {
             el.appendChild(container);
             this.messagingController.addMsg(el);
             nbMsg++;
-            container.setAttribute('id', nbMsg);
+            // make the container (message) belongs to the node sending the message 
+            // using the id of the pkt source 
+            container.setAttribute('id', pkt.Header.Source);
         }
 
         const el = document.createElement("div");

@@ -12,6 +12,11 @@ import (
 	"golang.org/x/xerrors"
 )
 
+func (n *node) ExecScoreMessage(msg types.ScoreMessage, pkt transport.Packet) error {
+	// TODO implement
+	return xerrors.Errorf("")
+}
+
 // processes chat message
 func (n *node) ExecChatMessage(msg types.Message, pkt transport.Packet) error {
 	// convert message to ChatMessage
