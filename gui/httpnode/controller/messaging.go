@@ -92,6 +92,39 @@ func (m messaging) BroadcastHandler() http.HandlerFunc {
 	}
 }
 
+// reputation
+func (m messaging) LikeHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			m.likePost(w, r)
+		case http.MethodOptions:
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Headers", "*")
+			return
+		default:
+			http.Error(w, "forbidden method", http.StatusMethodNotAllowed)
+			return
+		}
+	}
+}
+
+func (m messaging) DisLikeHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			m.dislikePost(w, r)
+		case http.MethodOptions:
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Headers", "*")
+			return
+		default:
+			http.Error(w, "forbidden method", http.StatusMethodNotAllowed)
+			return
+		}
+	}
+}
+
 // [
 //
 //	"127.0.0.1:xxx",
@@ -233,6 +266,7 @@ func (m messaging) broadcastPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("avant broad")
 	err = m.node.Broadcast(res)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

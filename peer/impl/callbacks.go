@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"fmt"
 	"math/rand"
 	"regexp"
 	"strings"
@@ -12,9 +13,15 @@ import (
 	"golang.org/x/xerrors"
 )
 
-func (n *node) ExecScoreMessage(msg types.ScoreMessage, pkt transport.Packet) error {
+// reputation
+func (n *node) ExecLikeMessage(msg types.Message, pkt transport.Packet) error {
 	// TODO implement
-	return xerrors.Errorf("")
+	return nil
+}
+
+func (n *node) ExecDislikeMessage(msg types.Message, pkt transport.Packet) error {
+	// TODO implement
+	return nil
 }
 
 // processes chat message
@@ -24,6 +31,8 @@ func (n *node) ExecChatMessage(msg types.Message, pkt transport.Packet) error {
 	if !conv {
 		return xerrors.Errorf("wrong type: %T", msg)
 	}
+
+	fmt.Println("Source " + pkt.Header.Source)
 
 	// log message
 	log.Info().Msgf("%s", chatMsg)

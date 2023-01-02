@@ -3,9 +3,11 @@ package types
 import "go.dedis.ch/cs438/transport"
 
 // reputation
-type ScoreMessage struct {
+type LikeMessage struct {
 	messageID string
-	score     uint
+}
+type DislikeMessage struct {
+	messageID string
 }
 
 // ChatMessage is a message sent to exchange text messages between nodes.

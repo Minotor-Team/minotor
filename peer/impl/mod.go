@@ -27,7 +27,7 @@ func NewPeer(conf peer.Configuration) peer.Peer {
 		store:             newStore(),
 		searchsHandler:    newChannelsHandler(),
 		paxosHandler:      newPaxosHandler(conf),
-		messageReputation: map[uint][]uint{},
+		messageReputation: map[uint]uint{},
 	}
 
 	myAddr := node.soc.GetAddress()
@@ -49,7 +49,8 @@ func NewPeer(conf peer.Configuration) peer.Peer {
 	node.reg.RegisterMessageCallback(types.TLCMessage{}, node.ExecTLCMessage)
 
 	// reputation
-	// node.reg.RegisterMessageCallback(types.ScoreMessage{}, node.ExecScoreMessage)
+	node.reg.RegisterMessageCallback(types.LikeMessage{}, node.ExecLikeMessage)
+	node.reg.RegisterMessageCallback(types.DislikeMessage{}, node.ExecDislikeMessage)
 
 	return node
 }
@@ -71,8 +72,8 @@ type node struct {
 	searchsHandler  *channelsHandler
 	paxosHandler    *paxosHandler
 	// reputation !
-	reputation        *types.ReputationValue
-	messageReputation map[uint][]uint
+	// reputation        *types.ReputationValue
+	messageReputation map[uint]uint
 }
 
 type void struct{}

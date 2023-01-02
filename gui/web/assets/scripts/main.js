@@ -446,6 +446,7 @@ class Packets extends BaseElement {
                 likeButt.removeEventListener('click', handleLikeClick);
 
                 // TODO send Like Msg to container id (IP of the node who created the message)
+
             }
             function handleDisLikeClick() {
                 const dislikeElem = document.getElementById('val' + dislikeButt.id)
@@ -548,6 +549,75 @@ class Packets extends BaseElement {
     }
 }
 
+// reputation 
+class Likes extends BaseElement {
+    async sendLike() {
+        const addr = this.peerInfo.getAPIURL("/messaging/like");
+
+        const ok = this.checkInputs(this.scoreMessageTarget);
+        if (!ok) {
+            return;
+        }
+
+        const msgID = this.scoreMessageTarget.value;
+
+        const msg = {
+            "Type": "like",
+            "payload": {
+                "messageID": msgID
+            }
+        };
+
+        const fetchArgs = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(msg)
+        };
+
+        try {
+            await this.fetch(addr, fetchArgs);
+            this.flash.printSuccess("like successfully sended");
+        } catch (e) {
+            this.flash.printError("failed to send like: " + e);
+        }
+    }
+
+    async sendDisLike() {
+        const addr = this.peerInfo.getAPIURL("/messaging/dislike");
+
+        const ok = this.checkInputs(this.scoreMessageTarget);
+        if (!ok) {
+            return;
+        }
+
+        const msgID = this.scoreMessageTarget.value;
+
+        const msg = {
+            "Type": "dislike",
+            "payload": {
+                "messageID": msgID
+            }
+        };
+
+        const fetchArgs = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(msg)
+        };
+
+        try {
+            await this.fetch(addr, fetchArgs);
+            this.flash.printSuccess("dislike successfully sended");
+        } catch (e) {
+            this.flash.printError("failed to send dislike: " + e);
+        }
+    }
+}
+
 class Broadcast extends BaseElement {
     static get targets() {
         return ["chatMessage", "privateMessage", "privateRecipients"];
@@ -579,6 +649,8 @@ class Broadcast extends BaseElement {
         };
 
         try {
+            console.log("ADDR : " + addr)
+            console.log("Args : " + fetchArgs.body)
             await this.fetch(addr, fetchArgs);
             this.flash.printSuccess("chat message broadcasted");
         } catch (e) {

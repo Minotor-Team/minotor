@@ -5,6 +5,57 @@ import (
 	"strings"
 )
 
+// reputation
+// -----------------------------------------------------------------------------
+// Like Messages
+
+// NewEmpty implements types.Message.
+func (c LikeMessage) NewEmpty() Message {
+	return &LikeMessage{}
+}
+
+// Name implements types.Message.
+func (LikeMessage) Name() string {
+	return "like"
+}
+
+// String implements types.Message.
+func (c LikeMessage) String() string {
+	return fmt.Sprintf("<%s>", c.messageID)
+}
+
+// HTML implements types.Message.
+func (c LikeMessage) HTML() string {
+	return c.String()
+}
+
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Dislike Messages
+
+// NewEmpty implements types.Message.
+func (c DislikeMessage) NewEmpty() Message {
+	return &DislikeMessage{}
+}
+
+// Name implements types.Message.
+func (DislikeMessage) Name() string {
+	return "dislike"
+}
+
+// String implements types.Message.
+func (c DislikeMessage) String() string {
+	return fmt.Sprintf("<%s>", c.messageID)
+}
+
+// HTML implements types.Message.
+func (c DislikeMessage) HTML() string {
+	return c.String()
+}
+
+// -----------------------------------------------------------------------------
+
 // -----------------------------------------------------------------------------
 // ChatMessage
 

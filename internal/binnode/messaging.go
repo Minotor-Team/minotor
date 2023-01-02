@@ -2,6 +2,7 @@ package binnode
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -30,7 +31,32 @@ func (b binnode) Unicast(dest string, msg transport.Message) error {
 
 // Broadcast implements peer.Messaging
 func (b binnode) Broadcast(msg transport.Message) error {
+	fmt.Println("http broad")
 	endpoint := "http://" + b.proxyAddr + "/messaging/broadcast"
+
+	_, err := b.postData(endpoint, msg)
+	if err != nil {
+		return xerrors.Errorf("failed to post data: %v", err)
+	}
+
+	return nil
+}
+
+// reputation
+func (b binnode) sendLike(msg transport.Message) error {
+	endpoint := "http://" + b.proxyAddr + "/messaging/like"
+
+	_, err := b.postData(endpoint, msg)
+	if err != nil {
+		return xerrors.Errorf("failed to post data: %v", err)
+	}
+
+	return nil
+}
+
+// reputation
+func (b binnode) sendDisLike(msg transport.Message) error {
+	endpoint := "http://" + b.proxyAddr + "/messaging/dislike"
 
 	_, err := b.postData(endpoint, msg)
 	if err != nil {

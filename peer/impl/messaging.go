@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -36,6 +37,7 @@ func (n *node) Unicast(dest string, msg transport.Message) error {
 
 // broadcasts given message
 func (n *node) Broadcast(msg transport.Message) error {
+	fmt.Println(("real broad"))
 
 	myAddr := n.soc.GetAddress()
 
