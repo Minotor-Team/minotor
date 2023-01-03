@@ -148,7 +148,6 @@ class PeerInfo extends Stimulus.Controller {
         this.endpoint = endpoint;
 
         this.peerAddrTarget.innerText = this.endpoint;
-        console.log(this.endpoint);
 
         const addr = this.endpoint + "/socket/address";
 
@@ -220,9 +219,6 @@ class Like extends BaseElement {
             body: JSON.stringify(msg)
         };
         try {
-            console.log("like : " + destination);
-            console.log("like : " + addr);
-            console.log("like : " + fetchArgs.body);
             await this.fetch(addr, fetchArgs);
             // this.flash.printSuccess("like successfully sended");
         } catch (e) {
@@ -297,9 +293,6 @@ class Unicast extends BaseElement {
         };
 
         try {
-            console.log("unic : " + destination);
-            console.log("unicast : " + addr);
-            console.log("unicast : " + fetchArgs.body);
             await this.fetch(addr, fetchArgs);
 
             const date = new Date();
@@ -504,7 +497,6 @@ class Packets extends BaseElement {
             // ------------ end server ------------ 
 
             function handleLikeClick() {
-                console.log(container.id)
                 const likeElem = document.getElementById('val' + likeButt.id)
                 let currLikesNb = likeElem.innerText
                 currLikesNb = Number(currLikesNb);
@@ -517,7 +509,7 @@ class Packets extends BaseElement {
                 showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3]);
                 likeButt.removeEventListener('click', handleLikeClick);
 
-                // TODO send Like Msg to container id (IP of the node who created the message)
+                // send Like Msg to container id (IP of the node who created the message)
                 // use the like button id to identify the message ID 
                 const like = new Like();
                 like.sendLike(likeButt.id, container.id);
@@ -536,7 +528,7 @@ class Packets extends BaseElement {
                 showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3]);
                 dislikeButt.removeEventListener('click', handleDisLikeClick);
 
-                // TODO send DisLike Msg to container id (IP of the node who created the message)
+                // send DisLike Msg to container id (IP of the node who created the message)
                 const like = new Like();
                 like.sendDisLike(likeButtID, container.id);
 
@@ -659,8 +651,6 @@ class Broadcast extends BaseElement {
         };
 
         try {
-            console.log("ADDR : " + addr)
-            console.log("Args : " + fetchArgs.body)
             await this.fetch(addr, fetchArgs);
             this.flash.printSuccess("chat message broadcasted");
         } catch (e) {

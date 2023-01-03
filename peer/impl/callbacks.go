@@ -48,7 +48,7 @@ func (n *node) ExecDislikeMessage(msg types.Message, pkt transport.Packet) error
 
 	n.messageReputation.updateMessageReputation(msgID, false)
 
-	fmt.Println("MAP")
+	fmt.Println("UPDATE")
 	fmt.Println(n.messageReputation.messageScore)
 
 	return nil
@@ -61,9 +61,6 @@ func (n *node) ExecChatMessage(msg types.Message, pkt transport.Packet) error {
 	if !conv {
 		return xerrors.Errorf("wrong type: %T", msg)
 	}
-
-	fmt.Println("Source " + pkt.Header.Source)
-	fmt.Println(chatMsg)
 
 	// log message
 	log.Info().Msgf("%s", chatMsg)

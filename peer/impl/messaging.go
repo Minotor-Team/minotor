@@ -1,7 +1,6 @@
 package impl
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -30,8 +29,6 @@ func (n *node) SendLike(dest string, msg transport.Message) error {
 	}
 
 	// send packet
-	fmt.Println(("unicast addr:" + addr))
-	fmt.Println((msg.Payload))
 	err := n.soc.Send(addr, pkt, 0)
 
 	return err
@@ -78,8 +75,6 @@ func (n *node) Unicast(dest string, msg transport.Message) error {
 	}
 
 	// send packet
-	fmt.Println(("unicast addr:" + addr))
-	fmt.Println(msg.Payload)
 	err := n.soc.Send(addr, pkt, 0)
 
 	return err
@@ -87,8 +82,6 @@ func (n *node) Unicast(dest string, msg transport.Message) error {
 
 // broadcasts given message
 func (n *node) Broadcast(msg transport.Message) error {
-	fmt.Println(("real broad"))
-
 	myAddr := n.soc.GetAddress()
 
 	// create rumors header, message and then packet

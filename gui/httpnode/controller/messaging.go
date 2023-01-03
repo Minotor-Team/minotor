@@ -240,9 +240,6 @@ func (m messaging) unicastPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("UNI POST")
-	fmt.Println(res.Dest)
-	fmt.Println(res.Msg)
 	err = m.node.Unicast(res.Dest, res.Msg)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -268,10 +265,6 @@ func (m messaging) likePost(w http.ResponseWriter, r *http.Request) {
 			http.StatusInternalServerError)
 		return
 	}
-	// TODO unicast ? or sendlikes ?
-	fmt.Println("AAAAAAA ")
-	fmt.Println(res.Dest)
-	fmt.Println(res.Msg)
 
 	err = m.node.SendLike(res.Dest, res.Msg)
 	if err != nil {
@@ -324,7 +317,6 @@ func (m messaging) broadcastPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("avant broad")
 	err = m.node.Broadcast(res)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
