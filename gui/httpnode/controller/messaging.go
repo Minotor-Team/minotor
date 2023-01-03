@@ -76,22 +76,6 @@ func (m messaging) UnicastHandler() http.HandlerFunc {
 	}
 }
 
-func (m messaging) BroadcastHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			m.broadcastPost(w, r)
-		case http.MethodOptions:
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Headers", "*")
-			return
-		default:
-			http.Error(w, "forbidden method", http.StatusMethodNotAllowed)
-			return
-		}
-	}
-}
-
 // reputation
 func (m messaging) LikeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -114,6 +98,22 @@ func (m messaging) DisLikeHandler() http.HandlerFunc {
 		switch r.Method {
 		case http.MethodPost:
 			m.dislikePost(w, r)
+		case http.MethodOptions:
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Headers", "*")
+			return
+		default:
+			http.Error(w, "forbidden method", http.StatusMethodNotAllowed)
+			return
+		}
+	}
+}
+
+func (m messaging) BroadcastHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			m.broadcastPost(w, r)
 		case http.MethodOptions:
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			w.Header().Set("Access-Control-Allow-Headers", "*")
@@ -240,7 +240,7 @@ func (m messaging) unicastPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("BBBBB")
+	fmt.Println("UNI POST")
 	fmt.Println(res.Dest)
 	fmt.Println(res.Msg)
 	err = m.node.Unicast(res.Dest, res.Msg)
@@ -297,6 +297,7 @@ func (m messaging) dislikePost(w http.ResponseWriter, r *http.Request) {
 			http.StatusInternalServerError)
 		return
 	}
+	// TODO unicast ? or senddislikes ?
 	err = m.node.SendDisLike(res.Dest, res.Msg)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
