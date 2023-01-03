@@ -12,7 +12,7 @@ import (
 
 func newAuthentication() *authentication {
 	ctx := context.Background()
-	opt := option.WithCredentialsFile("path/to/serviceAccountKey.json")
+	opt := option.WithCredentialsFile("private-key.json")
 	app, err := firebase.NewApp(ctx, nil, opt)
 	if err != nil {
 		log.Err(err).Msg("failed to create app")
@@ -32,6 +32,21 @@ type authentication struct {
 	client *auth.Client
 }
 
+func (authentication *authentication) SignIn(email, uid string) error {
+	// Get user by email.
+	user, err := authentication.client.GetUserByEmail(context.Background(), email)
+	if err != nil {
+		return xerrors.Errorf("error getting user with this email address: %v", err)
+	}
+
+	if user.UID != uid {
+		return xerrors.Errorf("invalid uid for this email address")
+	}
+
+	return nil
+}
+
+/*
 func (authentication *authentication) SignUp(email, name string) (*auth.UserRecord, error) {
 	// Create a new user with the email.
 	params := (&auth.UserToCreate{}).
@@ -43,18 +58,4 @@ func (authentication *authentication) SignUp(email, name string) (*auth.UserReco
 	}
 
 	return user, nil
-}
-
-func (authentication *authentication) SignIn(email, uid string) (*auth.UserRecord, error) {
-	// Get user by email.
-	user, err := authentication.client.GetUserByEmail(context.Background(), email)
-	if err != nil {
-		return nil, xerrors.Errorf("error getting user with this email address: %v", err)
-	}
-
-	if user.UID != uid {
-		return nil, xerrors.Errorf("invalid uid for this email address")
-	}
-
-	return user, nil
-}
+}*/

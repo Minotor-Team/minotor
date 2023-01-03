@@ -19,6 +19,7 @@ func NewPeer(conf peer.Configuration) peer.Peer {
 		conf:            conf,
 		soc:             conf.Socket,
 		reg:             conf.MessageRegistry,
+		authentication:  newAuthentication(),
 		routingTable:    newNodeRT(),
 		rumorsHandler:   newRumorsHandler(),
 		acksHandler:     newChannelsHandler(),
@@ -58,6 +59,7 @@ type node struct {
 	conf            peer.Configuration
 	soc             transport.Socket
 	reg             registry.Registry
+	authentication  *authentication
 	routingTable    *nodeRT
 	rumorsHandler   *rumorsHandler
 	acksHandler     *channelsHandler

@@ -11,6 +11,7 @@ import (
 
 // starts the node
 func (n *node) Start() error {
+
 	// indicate that the node is running
 	atomic.StoreUint32(&n.run, 1)
 

@@ -137,7 +137,7 @@ class Flash extends Stimulus.Controller {
 
 class PeerInfo extends Stimulus.Controller {
     static get targets() {
-        return ["emailAddr", "peerAddr", "socketAddr"];
+        return ["emailAddr", "uidAddr", "peerAddr", "socketAddr"];
     }
 
     async initialize() {
@@ -145,10 +145,13 @@ class PeerInfo extends Stimulus.Controller {
         
         const email = decodeURIComponent(queryDict["email"]);
         this.email = email;
+        const uid = decodeURIComponent(queryDict["uid"]);
+        this.uid = uid;
         const endpoint = "http://" + decodeURIComponent(queryDict["addr"]);
         this.endpoint = endpoint;
         
         this.emailAddrTarget.innerText = this.email;
+        this.uidAddrTarget.innerText = this.uid;
         this.peerAddrTarget.innerText = this.endpoint;
 
         const addr = this.endpoint + "/socket/address";
