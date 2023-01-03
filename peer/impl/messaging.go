@@ -40,7 +40,6 @@ func (n *node) SendLike(dest string, msg transport.Message) error {
 // send dislike to a given destination
 func (n *node) SendDisLike(dest string, msg transport.Message) error {
 	addr, inTable := n.routingTable.getAddr(dest)
-
 	if !inTable {
 		return xerrors.Errorf("forwarding address not found: %v", dest)
 	}

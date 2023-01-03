@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -20,9 +21,17 @@ func (n *node) ExecLikeMessage(msg types.Message, pkt transport.Packet) error {
 	if !conv {
 		return xerrors.Errorf("wrong type: %T", msg)
 	}
-	fmt.Println(msg)
-	fmt.Println(likeMsg)
-	fmt.Println("likeMSG " + pkt.String())
+
+	msgID, err := strconv.ParseInt(likeMsg.Message, 10, 64)
+	if err != nil {
+		return xerrors.Errorf("Error during conversion")
+	}
+
+	n.messageReputation.updateMessageReputation(msgID, true)
+
+	fmt.Println("UPDATE")
+	fmt.Println(n.messageReputation.messageScore)
+
 	return nil
 }
 
@@ -32,8 +41,16 @@ func (n *node) ExecDislikeMessage(msg types.Message, pkt transport.Packet) error
 	if !conv {
 		return xerrors.Errorf("wrong type: %T", msg)
 	}
-	fmt.Println("dislikeMSG " + dislikeMsg.HTML())
-	fmt.Println("dislikeMSG " + pkt.String())
+	msgID, err := strconv.ParseInt(dislikeMsg.Message, 10, 64)
+	if err != nil {
+		return xerrors.Errorf("Error during conversion")
+	}
+
+	n.messageReputation.updateMessageReputation(msgID, false)
+
+	fmt.Println("MAP")
+	fmt.Println(n.messageReputation.messageScore)
+
 	return nil
 }
 
