@@ -512,7 +512,7 @@ class Packets extends BaseElement {
                 // send Like Msg to container id (IP of the node who created the message)
                 // use the like button id to identify the message ID 
                 const like = new Like();
-                like.sendLike(likeButt.id, container.id);
+                like.sendLike(el.id, container.id);
 
             }
             function handleDisLikeClick() {
@@ -530,7 +530,7 @@ class Packets extends BaseElement {
 
                 // send DisLike Msg to container id (IP of the node who created the message)
                 const like = new Like();
-                like.sendDisLike(likeButtID, container.id);
+                like.sendDisLike(el.id, container.id);
 
             }
 
@@ -586,11 +586,12 @@ class Packets extends BaseElement {
             <span class="ip-addr"> ${pkt.Header.Source.slice(-5)} </span> at ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</p></div>`;
 
             el.appendChild(container);
+            el.id = pkt.Header.Timestamp;
             this.messagingController.addMsg(el);
             nbMsg++;
             // make the container (message) belongs to the node sending the message 
             // using the id of the pkt source 
-            container.setAttribute('id', pkt.Header.Source);
+            container.id = pkt.Header.Source;
         }
 
         const el = document.createElement("div");
