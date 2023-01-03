@@ -23,6 +23,7 @@ const main = function () {
     application.register("dataSharing", DataSharing);
     application.register("search", Search);
     application.register("naming", Naming);
+    application.register("likes", Like);
 
     initCollapsible();
 };
@@ -228,6 +229,9 @@ class Unicast extends BaseElement {
         };
 
         try {
+            console.log("unic : " + destination);
+            console.log("unicast : " + addr);
+            console.log("unicast : " + fetchArgs.body);
             await this.fetch(addr, fetchArgs);
 
             const date = new Date();
@@ -446,6 +450,9 @@ class Packets extends BaseElement {
                 likeButt.removeEventListener('click', handleLikeClick);
 
                 // TODO send Like Msg to container id (IP of the node who created the message)
+                // use the like button id to identify the message ID 
+                const like = new Like();
+                like.sendLike(likeButt.id, container.id);
 
             }
             function handleDisLikeClick() {
@@ -462,6 +469,8 @@ class Packets extends BaseElement {
                 dislikeButt.removeEventListener('click', handleDisLikeClick);
 
                 // TODO send DisLike Msg to container id (IP of the node who created the message)
+                const like = new Like();
+                like.sendDisLike(likeButtID, container.id);
 
             }
 
@@ -549,22 +558,21 @@ class Packets extends BaseElement {
     }
 }
 
-// reputation 
-class Likes extends BaseElement {
-    async sendLike() {
-        const addr = this.peerInfo.getAPIURL("/messaging/like");
+class Like extends BaseElement {
 
-        const ok = this.checkInputs(this.scoreMessageTarget);
-        if (!ok) {
-            return;
-        }
-
-        const msgID = this.scoreMessageTarget.value;
+    // reputation 
+    async sendLike(msgID, destination) {
+        const proxyAddressElement = document.querySelector('td[data-peerinfo-target="peerAddr"]');
+        const proxyAddressText = proxyAddressElement.textContent;
+        const addr = proxyAddressText + "/messaging/like";
 
         const msg = {
-            "Type": "like",
-            "payload": {
-                "messageID": msgID
+            "Dest": destination,
+            "Msg": {
+                "Type": "like",
+                "payload": {
+                    "messageID": msgID
+                }
             }
         };
 
@@ -575,29 +583,27 @@ class Likes extends BaseElement {
             },
             body: JSON.stringify(msg)
         };
-
+        console.log(fetchArgs.body)
         try {
             await this.fetch(addr, fetchArgs);
-            this.flash.printSuccess("like successfully sended");
+            // this.flash.printSuccess("like successfully sended");
         } catch (e) {
-            this.flash.printError("failed to send like: " + e);
+            // this.flash.printError("failed to send like: " + e);
         }
     }
 
-    async sendDisLike() {
-        const addr = this.peerInfo.getAPIURL("/messaging/dislike");
-
-        const ok = this.checkInputs(this.scoreMessageTarget);
-        if (!ok) {
-            return;
-        }
-
-        const msgID = this.scoreMessageTarget.value;
+    async sendDisLike(msgID, destination) {
+        const proxyAddressElement = document.querySelector('td[data-peerinfo-target="peerAddr"]');
+        const proxyAddressText = proxyAddressElement.textContent;
+        const addr = proxyAddressText + "/messaging/dislike";
 
         const msg = {
-            "Type": "dislike",
-            "payload": {
-                "messageID": msgID
+            "Dest": destination,
+            "Msg": {
+                "Type": "dislike",
+                "payload": {
+                    "messageID": msgID
+                }
             }
         };
 
@@ -611,9 +617,9 @@ class Likes extends BaseElement {
 
         try {
             await this.fetch(addr, fetchArgs);
-            this.flash.printSuccess("dislike successfully sended");
+            // this.flash.printSuccess("dislike successfully sended");
         } catch (e) {
-            this.flash.printError("failed to send dislike: " + e);
+            // this.flash.printError("failed to send dislike: " + e);
         }
     }
 }

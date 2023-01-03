@@ -15,12 +15,25 @@ import (
 
 // reputation
 func (n *node) ExecLikeMessage(msg types.Message, pkt transport.Packet) error {
-	// TODO implement
+	fmt.Println("Like recu")
+	likeMsg, conv := msg.(*types.LikeMessage)
+	if !conv {
+		return xerrors.Errorf("wrong type: %T", msg)
+	}
+	fmt.Println(likeMsg)
+	fmt.Println("likeMSG " + pkt.String())
 	return nil
 }
 
 func (n *node) ExecDislikeMessage(msg types.Message, pkt transport.Packet) error {
 	// TODO implement
+	fmt.Println("Dislike recu")
+	dislikeMsg, conv := msg.(*types.DislikeMessage)
+	if !conv {
+		return xerrors.Errorf("wrong type: %T", msg)
+	}
+	fmt.Println("dislikeMSG " + dislikeMsg.HTML())
+	fmt.Println("dislikeMSG " + pkt.String())
 	return nil
 }
 
@@ -33,6 +46,7 @@ func (n *node) ExecChatMessage(msg types.Message, pkt transport.Packet) error {
 	}
 
 	fmt.Println("Source " + pkt.Header.Source)
+	fmt.Println(chatMsg)
 
 	// log message
 	log.Info().Msgf("%s", chatMsg)

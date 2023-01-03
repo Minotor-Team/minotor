@@ -27,7 +27,7 @@ func NewPeer(conf peer.Configuration) peer.Peer {
 		store:             newStore(),
 		searchsHandler:    newChannelsHandler(),
 		paxosHandler:      newPaxosHandler(conf),
-		messageReputation: map[uint]uint{},
+		messageReputation: newMsgReputation(),
 	}
 
 	myAddr := node.soc.GetAddress()
@@ -73,7 +73,7 @@ type node struct {
 	paxosHandler    *paxosHandler
 	// reputation !
 	// reputation        *types.ReputationValue
-	messageReputation map[uint]uint
+	messageReputation *messageReputation
 }
 
 type void struct{}

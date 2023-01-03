@@ -240,7 +240,64 @@ func (m messaging) unicastPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("BBBBB")
+	fmt.Println(res.Dest)
+	fmt.Println(res.Msg)
 	err = m.node.Unicast(res.Dest, res.Msg)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+
+func (m messaging) likePost(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+
+	buf, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "failed to read body: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	m.log.Info().Msgf("like got the following message: %s", buf)
+
+	res := types.UnicastArgument{}
+	err = json.Unmarshal(buf, &res)
+	if err != nil {
+		http.Error(w, "failed to unmarshal like argument: "+err.Error(),
+			http.StatusInternalServerError)
+		return
+	}
+	// TODO unicast ? or sendlikes ?
+	fmt.Println("AAAAAAA ")
+	fmt.Println(res.Dest)
+	fmt.Println(res.Msg)
+
+	err = m.node.SendLike(res.Dest, res.Msg)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+func (m messaging) dislikePost(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+
+	buf, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "failed to read body: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	m.log.Info().Msgf("dislike got the following message: %s", buf)
+
+	res := types.UnicastArgument{}
+	err = json.Unmarshal(buf, &res)
+	if err != nil {
+		http.Error(w, "failed to unmarshal dislike argument: "+err.Error(),
+			http.StatusInternalServerError)
+		return
+	}
+	err = m.node.SendDisLike(res.Dest, res.Msg)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
