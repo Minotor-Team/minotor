@@ -32,10 +32,12 @@ func Test_HW1_Messaging_Broadcast_Rumor_Simple(t *testing.T) {
 			handler1, status1 := fake.GetHandler(t)
 			handler2, status2 := fake.GetHandler(t)
 
-			node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler1))
+			node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+				z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler1))
 			defer node1.Stop()
 
-			node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler2))
+			node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+				z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler2))
 			defer node2.Stop()
 
 			node1.AddPeer(node2.GetAddr())
@@ -161,13 +163,16 @@ func Test_HW1_Messaging_Broadcast_Rumor_Three_Nodes_No_ContinueMongering(t *test
 	handler2, status2 := fake.GetHandler(t)
 	handler3, status3 := fake.GetHandler(t)
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler1), z.WithContinueMongering(0))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler1), z.WithContinueMongering(0))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler2), z.WithContinueMongering(0))
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler2), z.WithContinueMongering(0))
 	defer node2.Stop()
 
-	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler3), z.WithContinueMongering(0))
+	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler3), z.WithContinueMongering(0))
 	defer node3.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -234,10 +239,11 @@ func Test_HW1_Messaging_AntiEntropy(t *testing.T) {
 
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithAntiEntropy(time.Millisecond*500))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithAntiEntropy(time.Millisecond*500))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
 	// As soon as node1 has a peer, it should send to that peer a status message
@@ -296,10 +302,11 @@ func Test_HW1_Messaging_Heartbeat(t *testing.T) {
 
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithHeartbeat(time.Millisecond*500))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithHeartbeat(time.Millisecond*500))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
 	// As soon as node1 has a peer, it should send to that peer an empty rumor
@@ -385,13 +392,16 @@ func Test_HW1_Messaging_Broadcast_ContinueMongering(t *testing.T) {
 	handler2, status2 := fake.GetHandler(t)
 	handler3, status3 := fake.GetHandler(t)
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler1), z.WithContinueMongering(1))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler1), z.WithContinueMongering(1))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler2), z.WithContinueMongering(1))
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler2), z.WithContinueMongering(1))
 	defer node2.Stop()
 
-	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler3), z.WithContinueMongering(1))
+	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler3), z.WithContinueMongering(1))
 	defer node3.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -517,13 +527,16 @@ func Test_HW1_Messaging_Broadcast_No_ContinueMongering(t *testing.T) {
 	handler2, status2 := fake.GetHandler(t)
 	handler3, status3 := fake.GetHandler(t)
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler1), z.WithContinueMongering(0))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler1), z.WithContinueMongering(0))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler2), z.WithContinueMongering(0))
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler2), z.WithContinueMongering(0))
 	defer node2.Stop()
 
-	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler3), z.WithContinueMongering(0))
+	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler3), z.WithContinueMongering(0))
 	defer node3.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -613,12 +626,15 @@ func Test_HW1_Messaging_Broadcast_CatchUp(t *testing.T) {
 	handler2, status2 := fake.GetHandler(t)
 	handler3, status3 := fake.GetHandler(t)
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler1), z.WithAntiEntropy(time.Millisecond*50))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler1), z.WithAntiEntropy(time.Millisecond*50))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler2), z.WithAntiEntropy(time.Millisecond*50), z.WithAutostart(false))
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler2), z.WithAntiEntropy(time.Millisecond*50), z.WithAutostart(false))
 
-	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler3), z.WithAntiEntropy(time.Millisecond*50))
+	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler3), z.WithAntiEntropy(time.Millisecond*50))
 	defer node3.Stop()
 
 	err := node1.Broadcast(fake.GetNetMsg(t))
@@ -679,7 +695,8 @@ func Test_HW1_Messaging_Broadcast_Ack(t *testing.T) {
 	fake := z.NewFakeMessage(t)
 	handler1, status1 := fake.GetHandler(t)
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler1), z.WithAckTimeout(time.Millisecond*500))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler1), z.WithAckTimeout(time.Millisecond*500))
 	defer node1.Stop()
 
 	sock2, err := transp.CreateSocket("127.0.0.1:0")
@@ -750,7 +767,8 @@ func Test_HW1_Messaging_Broadcast_No_Ack(t *testing.T) {
 	fake := z.NewFakeMessage(t)
 	handler1, status1 := fake.GetHandler(t)
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler1), z.WithAckTimeout(0), z.WithContinueMongering(0))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler1), z.WithAckTimeout(0), z.WithContinueMongering(0))
 	defer node1.Stop()
 
 	sock2, err := transp.CreateSocket("127.0.0.1:0")
@@ -862,6 +880,8 @@ func Test_HW1_Messaging_Broadcast_BigGraph(t *testing.T) {
 
 	for i := 0; i < n; i++ {
 		node := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+			z.WithEmail(Email),
+			z.WithUID(UID),
 			z.WithAntiEntropy(time.Second*5),
 			// since everyone is sending a rumor, there is no need to have route
 			// rumors
@@ -983,16 +1003,20 @@ func Test_HW1_Messaging_Broadcast_Private_Message(t *testing.T) {
 	handler3, status3 := fake.GetHandler(t)
 	handler4, status4 := fake.GetHandler(t)
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler1), z.WithAntiEntropy(time.Millisecond*50))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler1), z.WithAntiEntropy(time.Millisecond*50))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler2), z.WithAntiEntropy(time.Millisecond*50))
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler2), z.WithAntiEntropy(time.Millisecond*50))
 	defer node2.Stop()
 
-	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler3), z.WithAntiEntropy(time.Millisecond*50))
+	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler3), z.WithAntiEntropy(time.Millisecond*50))
 	defer node3.Stop()
 
-	node4 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler4), z.WithAntiEntropy(time.Millisecond*50))
+	node4 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler4), z.WithAntiEntropy(time.Millisecond*50))
 	defer node4.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -1047,13 +1071,16 @@ func Test_HW1_Messaging_Unicast_Private_Message(t *testing.T) {
 	handler2, status2 := fake.GetHandler(t)
 	handler3, status3 := fake.GetHandler(t)
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler1))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler1))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler2))
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler2))
 	defer node2.Stop()
 
-	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler3))
+	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler3))
 	defer node3.Stop()
 
 	node1.AddPeer(node2.GetAddr())

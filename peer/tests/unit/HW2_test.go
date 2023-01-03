@@ -24,7 +24,8 @@ func Test_HW2_Upload_Simple(t *testing.T) {
 	transp := channel.NewTransport()
 	chunkSize := uint(64*3 + 2) // The metafile can handle just 3 chunks
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithChunkSize(chunkSize), z.WithAutostart(false))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithChunkSize(chunkSize), z.WithAutostart(false))
 	defer node1.Stop()
 
 	chunk1 := make([]byte, chunkSize)
@@ -82,7 +83,7 @@ func Test_HW2_Upload_Round(t *testing.T) {
 	transp := channel.NewTransport()
 	chunkSize := uint(64*3 + 2) // The metafile can handle just 3 chunks
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithChunkSize(chunkSize), z.WithAutostart(false))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID), z.WithChunkSize(chunkSize), z.WithAutostart(false))
 	defer node1.Stop()
 
 	chunk1 := make([]byte, chunkSize)
@@ -141,7 +142,8 @@ func Test_HW2_Upload_Round(t *testing.T) {
 func Test_HW2_Catalog(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithAutostart(false))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithAutostart(false))
 	defer node1.Stop()
 
 	// > the catalog should be empty
@@ -169,7 +171,8 @@ func Test_HW2_Catalog(t *testing.T) {
 func Test_HW2_Download_Fail_inexistent_File(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithAutostart(false))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithAutostart(false))
 	defer node1.Stop()
 
 	// > If I try to download something that the node doesn't have and doesn't
@@ -187,7 +190,8 @@ func Test_HW2_Download_Fail_inexistent_File(t *testing.T) {
 func Test_HW2_Download_Local(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithAutostart(false))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithAutostart(false))
 	defer node1.Stop()
 
 	// Setting a file (chunks + metahash) in the node's storage.
@@ -226,10 +230,10 @@ func Test_HW2_Download_Local(t *testing.T) {
 func Test_HW2_Download_Remote_No_Routing(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
 	// Setting a file (chunks + metahash) in the node2's storage.
@@ -267,10 +271,11 @@ func Test_HW2_Download_Remote_No_Routing(t *testing.T) {
 func Test_HW2_Download_Remote_OneWay_Routing(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithDataRequestBackoff(time.Millisecond*100, 2, 2))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithDataRequestBackoff(time.Millisecond*100, 2, 2))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -312,10 +317,10 @@ func Test_HW2_Download_Remote_OneWay_Routing(t *testing.T) {
 func Test_HW2_Download_Remote(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -473,10 +478,10 @@ func Test_HW2_Download_Remote(t *testing.T) {
 func Test_HW2_Download_Remote_And_Local(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -537,13 +542,13 @@ func Test_HW2_Download_Remote_And_Local(t *testing.T) {
 func Test_HW2_Download_Remote_And_Local_With_relay(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
-	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node3.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -608,7 +613,8 @@ func Test_HW2_Download_Remote_And_Local_With_relay(t *testing.T) {
 func Test_HW2_Tag(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithAutostart(false))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithAutostart(false))
 	defer node1.Stop()
 
 	mh := "aef123"
@@ -628,7 +634,8 @@ func Test_HW2_Tag(t *testing.T) {
 func Test_HW2_Resolve(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithAutostart(false))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithAutostart(false))
 	defer node1.Stop()
 
 	mh := "aef123"
@@ -660,7 +667,8 @@ func Test_HW2_Tag_Resolve(t *testing.T) {
 
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithAutostart(false))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithAutostart(false))
 	defer node1.Stop()
 
 	for i, mh := range mhs {
@@ -688,7 +696,8 @@ func Test_HW2_Tag_Resolve(t *testing.T) {
 func Test_HW2_SearchFirst_Empty(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithAutostart(false))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithAutostart(false))
 	defer node1.Stop()
 
 	result, err := node1.SearchAll(*regexp.MustCompile(".*"), 10, time.Millisecond*100)
@@ -717,7 +726,8 @@ func Test_HW2_SearchAll_Local(t *testing.T) {
 
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithAutostart(false))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithAutostart(false))
 	defer node1.Stop()
 
 	// setting entries in the name storage
@@ -761,10 +771,10 @@ func Test_HW2_SearchAll_Remote_Empty(t *testing.T) {
 
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -835,10 +845,10 @@ func Test_HW2_SearchAll_Remote_Response(t *testing.T) {
 
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -930,16 +940,16 @@ func Test_HW2_SearchAll_Remote_Response(t *testing.T) {
 func Test_HW2_SearchAll_Remote_Relay(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
-	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node3.Stop()
 
-	node4 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node4 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node4.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -1041,19 +1051,19 @@ func Test_HW2_SearchAll_Remote_Relay(t *testing.T) {
 func Test_HW2_SearchAll_Remote_Budget(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
-	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node3.Stop()
 
-	node4 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node4 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node4.Stop()
 
-	node5 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node5 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node5.Stop()
 
 	// A <-> B
@@ -1174,7 +1184,8 @@ func Test_HW2_SearchAll_Remote_Budget(t *testing.T) {
 func Test_HW2_SearchFirst_No_Neighbor(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithAutostart(false))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
+		z.WithEmail(Email), z.WithUID(UID), z.WithAutostart(false))
 	defer node1.Stop()
 
 	expandingConf := peer.ExpandingRing{
@@ -1196,10 +1207,10 @@ func Test_HW2_SearchFirst_No_Neighbor(t *testing.T) {
 func Test_HW2_SearchFirst_Expanding(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -1277,10 +1288,10 @@ func Test_HW2_SearchFirst_Expanding(t *testing.T) {
 func Test_HW2_SearchFirst_Local(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -1327,10 +1338,10 @@ func Test_HW2_SearchFirst_Local(t *testing.T) {
 func Test_HW2_SearchFirst_Local_Partial(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -1389,10 +1400,10 @@ func Test_HW2_SearchFirst_Local_Partial(t *testing.T) {
 func Test_HW2_SearchFirst_Remote(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -1459,13 +1470,13 @@ func Test_HW2_SearchFirst_Remote(t *testing.T) {
 func Test_HW2_SearchFirst_Remote_Expanding(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node2.Stop()
 
-	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
+	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
 	defer node3.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -1609,6 +1620,8 @@ func Test_HW2_Scenario(t *testing.T) {
 			chunkSize := uint(1024)
 
 			opts := []z.Option{
+				z.WithEmail(Email),
+				z.WithUID(UID),
 				z.WithChunkSize(chunkSize),
 				// at least every peer will send a heartbeat message on start,
 				// which will make everyone to have an entry in its routing

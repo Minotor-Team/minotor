@@ -2,6 +2,8 @@ package impl
 
 import (
 	"context"
+	"os"
+	"strings"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
@@ -12,7 +14,10 @@ import (
 
 func newAuthentication() *authentication {
 	ctx := context.Background()
-	opt := option.WithCredentialsFile("private-key.json")
+	f, _ := os.Getwd()
+	f = strings.Split(f, "minotor")[0]
+	f += "minotor/credentials/key.json"
+	opt := option.WithCredentialsFile(f)
 	app, err := firebase.NewApp(ctx, nil, opt)
 	if err != nil {
 		log.Err(err).Msg("failed to create app")
@@ -45,17 +50,3 @@ func (authentication *authentication) SignIn(email, uid string) error {
 
 	return nil
 }
-
-/*
-func (authentication *authentication) SignUp(email, name string) (*auth.UserRecord, error) {
-	// Create a new user with the email.
-	params := (&auth.UserToCreate{}).
-		Email(email).
-		DisplayName(name)
-	user, err := authentication.client.CreateUser(authentication.ctx, params)
-	if err != nil {
-		return nil, xerrors.Errorf("error creating user: %v", err)
-	}
-
-	return user, nil
-}*/

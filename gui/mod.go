@@ -78,6 +78,16 @@ func main() {
 						Usage: "addr of the node",
 						Value: "127.0.0.1:0",
 					},
+					&urfave.StringFlag{
+						Name:  "email",
+						Usage: "login email",
+						Value: "false@mail.com",
+					},
+					&urfave.StringFlag{
+						Name:  "uid",
+						Usage: "user uid",
+						Value: "abcd1234",
+					},
 					&urfave.DurationFlag{
 						Name:  "antientropy",
 						Usage: "Antientropy interval",
@@ -203,6 +213,9 @@ func start(c *urfave.Context) error {
 	conf := peer.Configuration{
 		Socket:          sock,
 		MessageRegistry: standard.NewRegistry(),
+
+		Email:   c.String("email"),
+		UserUID: c.String("uid"),
 
 		AntiEntropyInterval: c.Duration("antientropy"),
 		HeartbeatInterval:   c.Duration("heartbeat"),

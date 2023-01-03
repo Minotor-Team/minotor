@@ -134,6 +134,9 @@ type configTemplate struct {
 	withWatcher bool
 	autoStart   bool
 
+	Email   string
+	UserUID string
+
 	AntiEntropyInterval time.Duration
 	HeartbeatInterval   time.Duration
 
@@ -209,6 +212,20 @@ func WithMessage(m types.Message, handler registry.Exec) Option {
 func WithMessageRegistry(r registry.Registry) Option {
 	return func(ct *configTemplate) {
 		ct.registry = r
+	}
+}
+
+// WithEmail specifies the email to login.
+func WithEmail(e string) Option {
+	return func(ct *configTemplate) {
+		ct.Email = e
+	}
+}
+
+// WithEmail specifies the email to login.
+func WithUID(u string) Option {
+	return func(ct *configTemplate) {
+		ct.UserUID = u
 	}
 }
 
@@ -309,6 +326,8 @@ func NewTestNode(t require.TestingT, f peer.Factory, trans transport.Transport,
 
 	config.Socket = socket
 	config.MessageRegistry = template.registry
+	config.Email = template.Email
+	config.UserUID = template.UserUID
 	config.AntiEntropyInterval = template.AntiEntropyInterval
 	config.HeartbeatInterval = template.HeartbeatInterval
 	config.ContinueMongering = template.ContinueMongering

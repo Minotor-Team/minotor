@@ -1,10 +1,11 @@
 package peer
 
 import (
+	"time"
+
 	"go.dedis.ch/cs438/registry"
 	"go.dedis.ch/cs438/storage"
 	"go.dedis.ch/cs438/transport"
-	"time"
 )
 
 // Peer defines the interface of a peer in the Peerster system. It embeds all
@@ -24,6 +25,9 @@ type Factory func(Configuration) Peer
 type Configuration struct {
 	Socket          transport.Socket
 	MessageRegistry registry.Registry
+
+	Email   string
+	UserUID string
 
 	// AntiEntropyInterval is the interval at which the peer sends a status
 	// message to a random neighbor. 0 means no status messages are sent.
