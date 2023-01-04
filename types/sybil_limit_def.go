@@ -1,0 +1,21 @@
+package types
+
+type RouteMessage struct {
+	// Keeps track of the length of the route
+	Length uint
+	// Budget of the route, i.e. the number of hops it can take before it is completed.
+	Budget uint
+	// Data transmitted by the node
+	Data string
+	// A MAC to authenticate the message.
+	MAC string
+	// An unique identifier that corresponds to a given s-instance (or v-instance).
+	// For r differents v-instances, use a numbers in range [1, r]
+	ID uint
+	// A boolean flag to indicate the direction of the message.
+	// A reversed message should use the reverse routing permutation.
+	Reversed bool
+
+	// A flag to indicate if the last hop should register the data or not.
+	MustRegister bool
+}
