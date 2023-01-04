@@ -23,6 +23,7 @@ const main = function () {
     application.register("dataSharing", DataSharing);
     application.register("search", Search);
     application.register("naming", Naming);
+    application.register("likes", Like);
 
     initCollapsible();
 };
@@ -147,7 +148,6 @@ class PeerInfo extends Stimulus.Controller {
         this.endpoint = endpoint;
 
         this.peerAddrTarget.innerText = this.endpoint;
-        console.log(this.endpoint);
 
         const addr = this.endpoint + "/socket/address";
 
@@ -190,6 +190,71 @@ class Messaging extends BaseElement {
     addMsg(el) {
         this.messagesTarget.append(el);
         this.holderTarget.scrollTop = this.holderTarget.scrollHeight;
+    }
+}
+
+class Like extends BaseElement {
+
+    // reputation 
+    async sendLike(msgID, destination) {
+        const proxyAddressElement = document.querySelector('td[data-peerinfo-target="peerAddr"]');
+        const proxyAddressText = proxyAddressElement.textContent;
+        const addr = proxyAddressText + "/messaging/like";
+
+        const msg = {
+            "Dest": destination,
+            "Msg": {
+                "Type": "like",
+                "payload": {
+                    "Message": msgID
+                }
+            }
+        };
+
+        const fetchArgs = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(msg)
+        };
+        try {
+            await this.fetch(addr, fetchArgs);
+            // this.flash.printSuccess("like successfully sended");
+        } catch (e) {
+            // this.flash.printError("failed to send like: " + e);
+        }
+    }
+
+    async sendDisLike(msgID, destination) {
+        const proxyAddressElement = document.querySelector('td[data-peerinfo-target="peerAddr"]');
+        const proxyAddressText = proxyAddressElement.textContent;
+        const addr = proxyAddressText + "/messaging/dislike";
+
+        const msg = {
+            "Dest": destination,
+            "Msg": {
+                "Type": "dislike",
+                "payload": {
+                    "Message": msgID
+                }
+            }
+        };
+
+        const fetchArgs = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(msg)
+        };
+
+        try {
+            await this.fetch(addr, fetchArgs);
+            // this.flash.printSuccess("dislike successfully sended");
+        } catch (e) {
+            // this.flash.printError("failed to send dislike: " + e);
+        }
     }
 }
 
@@ -370,6 +435,7 @@ class Routing extends BaseElement {
     }
 }
 
+var nbMsg = 0;
 class Packets extends BaseElement {
     static get targets() {
         return ["follow", "holder", "scroll", "packets"];
@@ -398,15 +464,138 @@ class Packets extends BaseElement {
                 el.classList.add("received");
             }
 
-            // note that this is not secure and prone to XSS attack.
-            el.innerHTML = `<div><p class="msg">${pkt.Msg.Payload.Message}</p><p class="details">from ${pkt.Header.Source} at ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</p></div>`;
+            // server
+            let ws;
 
+            function init() {
+                if (ws) {
+                    ws.onerror = ws.onopen = ws.onclose = null;
+                    ws.close();
+                }
+
+                ws = new WebSocket('ws://localhost:6969');
+                ws.onopen = () => {
+                    console.log('Connection opened!');
+                }
+                ws.onmessage = (event) => {
+                    event.data.text().then((text) => {
+                        const data = JSON.parse(text);
+                        showLikes(data[0], data[1], data[2], data[3]);
+                    });
+                }
+                ws.onclose = function () {
+                    ws = null;
+                }
+            }
+
+            function showLikes(nbLikes, nbDisLikes, likeValueID, dislikeValueID) {
+                document.getElementById(likeValueID).innerText = nbLikes;
+                document.getElementById(dislikeValueID).innerText = nbDisLikes;
+            }
+            init();
+
+            // ------------ end server ------------ 
+
+            function handleLikeClick() {
+                const likeElem = document.getElementById('val' + likeButt.id)
+                let currLikesNb = likeElem.innerText
+                currLikesNb = Number(currLikesNb);
+                currLikesNb++;
+                likeElem.innerText = currLikesNb;
+                const dislikeButtID = likeButt.id.replace(/0/, "1")
+                const currDisLikesNb = document.getElementById('val' + dislikeButtID).innerText
+                const likeDislikes = Array.of(currLikesNb, currDisLikesNb, 'val' + likeButt.id, 'val' + dislikeButtID);
+                ws.send(JSON.stringify(likeDislikes));
+                showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3]);
+                likeButt.removeEventListener('click', handleLikeClick);
+
+                // send Like Msg to container id (IP of the node who created the message)
+                // use the like button id to identify the message ID 
+                const like = new Like();
+                like.sendLike(el.id, container.id);
+
+            }
+            function handleDisLikeClick() {
+                const dislikeElem = document.getElementById('val' + dislikeButt.id)
+                let currDisLikesNb = dislikeElem.innerText
+                currDisLikesNb = Number(currDisLikesNb)
+                currDisLikesNb++
+                dislikeElem.innerText = currDisLikesNb;
+                const likeButtID = dislikeButt.id.replace(/1/, "0")
+                const currLikesNb = document.getElementById('val' + likeButtID).innerText
+                const likeDislikes = Array.of(currLikesNb, currDisLikesNb, 'val' + likeButtID, 'val' + dislikeButt.id);
+                ws.send(JSON.stringify(likeDislikes));
+                showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3]);
+                dislikeButt.removeEventListener('click', handleDisLikeClick);
+
+                // send DisLike Msg to container id (IP of the node who created the message)
+                const like = new Like();
+                like.sendDisLike(el.id, container.id);
+
+            }
+
+            const container = document.createElement('div');
+            container.style.display = 'flex';  // set the display property to flex
+            container.style.justifyContent = 'space-between';  // distribute the items evenly along the main axis
+
+            const size = '20px'
+            const likeButt = document.createElement('button');
+            likeButt.id = '0' + nbMsg.toString();
+            likeButt.style.height = size;
+            likeButt.style.width = size;
+            likeButt.style.display = 'flex';  // set the display property to flex
+            likeButt.style.alignItems = 'center';  // center the items vertically
+            likeButt.style.justifyContent = 'center';  // center the items horizontally
+            likeButt.style.value
+            likeButt.addEventListener('click', handleLikeClick);
+            const likeImg = document.createElement('img');
+            likeImg.src = './icons8-red-heart-96.png';
+            likeImg.style.height = size;
+            likeImg.style.width = size;
+            likeButt.appendChild(likeImg);
+
+            const dislikeButt = document.createElement('button');
+            dislikeButt.id = '1' + nbMsg.toString();
+            dislikeButt.style.height = size;
+            dislikeButt.style.width = size;
+            dislikeButt.style.display = 'flex';  // set the display property to flex
+            dislikeButt.style.alignItems = 'center';  // center the items vertically
+            dislikeButt.style.justifyContent = 'center';  // center the items horizontally
+            dislikeButt.addEventListener('click', handleDisLikeClick);
+            const dislikeImg = document.createElement('img');
+            dislikeImg.style.height = size;
+            dislikeImg.style.width = size;
+            dislikeImg.src = './icons8-broken-heart-96.png';
+            dislikeButt.appendChild(dislikeImg);
+
+            const likeValue = document.createElement('span');
+            likeValue.id = 'val0' + nbMsg.toString();
+            likeValue.style.marginRight = '15px';
+
+            const dislikeValue = document.createElement('span');
+            dislikeValue.id = 'val1' + nbMsg.toString();
+
+            container.appendChild(likeButt)
+            container.appendChild(likeValue)
+            container.appendChild(dislikeButt)
+            container.appendChild(dislikeValue)
+
+            // note that this is not secure and prone to XSS attack.
+            // displays only the last 5 digits of the IP address for better readability.
+            el.innerHTML = `<div><p class="msg">${pkt.Msg.Payload.Message}</p><p class="details">from 
+            <span class="ip-addr"> ${pkt.Header.Source.slice(-5)} </span> at ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</p></div>`;
+
+            el.appendChild(container);
+            el.id = pkt.Header.Timestamp;
             this.messagingController.addMsg(el);
+            nbMsg++;
+            // make the container (message) belongs to the node sending the message 
+            // using the id of the pkt source 
+            container.id = pkt.Header.Source;
         }
 
         const el = document.createElement("div");
         el.innerHTML = `<pre>${JSON.stringify(pkt, null, 2)}</pre>`;
-
         this.packetsTarget.append(el);
 
         this.scrollTarget.style.width = this.packetsTarget.scrollWidth + "px";
@@ -429,6 +618,8 @@ class Packets extends BaseElement {
         return this.application.getControllerForElementAndIdentifier(document.getElementById("messaging"), "messaging");
     }
 }
+
+
 
 class Broadcast extends BaseElement {
     static get targets() {

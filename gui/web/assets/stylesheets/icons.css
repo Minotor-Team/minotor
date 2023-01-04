@@ -1,0 +1,12 @@
+button.dislike-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+button.like-button,
+img.like-image {
+    height: 48px;
+    width: 48px;
+}

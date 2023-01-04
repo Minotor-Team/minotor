@@ -2,6 +2,14 @@ package types
 
 import "go.dedis.ch/cs438/transport"
 
+// reputation
+type LikeMessage struct {
+	Message string
+}
+type DislikeMessage struct {
+	Message string
+}
+
 // ChatMessage is a message sent to exchange text messages between nodes.
 //
 // - implements types.Message

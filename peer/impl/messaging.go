@@ -10,6 +10,52 @@ import (
 	"golang.org/x/xerrors"
 )
 
+// reputation
+// send like to a given destination
+func (n *node) SendLike(dest string, msg transport.Message) error {
+	addr, inTable := n.routingTable.getAddr(dest)
+
+	if !inTable {
+		return xerrors.Errorf("forwarding address not found: %v", dest)
+	}
+
+	myAddr := n.soc.GetAddress()
+
+	// create packet
+	header := transport.NewHeader(myAddr, myAddr, dest, 1)
+	pkt := transport.Packet{
+		Header: &header,
+		Msg:    &msg,
+	}
+
+	// send packet
+	err := n.soc.Send(addr, pkt, 0)
+
+	return err
+}
+
+// send dislike to a given destination
+func (n *node) SendDisLike(dest string, msg transport.Message) error {
+	addr, inTable := n.routingTable.getAddr(dest)
+	if !inTable {
+		return xerrors.Errorf("forwarding address not found: %v", dest)
+	}
+
+	myAddr := n.soc.GetAddress()
+
+	// create packet
+	header := transport.NewHeader(myAddr, myAddr, dest, 1)
+	pkt := transport.Packet{
+		Header: &header,
+		Msg:    &msg,
+	}
+
+	// send packet
+	err := n.soc.Send(addr, pkt, 0)
+
+	return err
+}
+
 // sends a packet to a given destination
 func (n *node) Unicast(dest string, msg transport.Message) error {
 	// retrieve forwarding address

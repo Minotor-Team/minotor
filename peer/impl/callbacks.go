@@ -3,6 +3,7 @@ package impl
 import (
 	"math/rand"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -11,6 +12,38 @@ import (
 	"go.dedis.ch/cs438/types"
 	"golang.org/x/xerrors"
 )
+
+// reputation
+func (n *node) ExecLikeMessage(msg types.Message, pkt transport.Packet) error {
+	likeMsg, conv := msg.(*types.LikeMessage)
+	if !conv {
+		return xerrors.Errorf("wrong type: %T", msg)
+	}
+
+	msgID, err := strconv.ParseInt(likeMsg.Message, 10, 64)
+	if err != nil {
+		return xerrors.Errorf("Error during conversion")
+	}
+
+	n.messageReputation.updateMessageReputation(msgID, true)
+
+	return nil
+}
+
+func (n *node) ExecDislikeMessage(msg types.Message, pkt transport.Packet) error {
+	dislikeMsg, conv := msg.(*types.DislikeMessage)
+	if !conv {
+		return xerrors.Errorf("wrong type: %T", msg)
+	}
+	msgID, err := strconv.ParseInt(dislikeMsg.Message, 10, 64)
+	if err != nil {
+		return xerrors.Errorf("Error during conversion")
+	}
+
+	n.messageReputation.updateMessageReputation(msgID, false)
+
+	return nil
+}
 
 // processes chat message
 func (n *node) ExecChatMessage(msg types.Message, pkt transport.Packet) error {
