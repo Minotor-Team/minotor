@@ -1,7 +1,6 @@
 package impl
 
 import (
-	"fmt"
 	"math/rand"
 	"regexp"
 	"strconv"
@@ -16,7 +15,6 @@ import (
 
 // reputation
 func (n *node) ExecLikeMessage(msg types.Message, pkt transport.Packet) error {
-	fmt.Println("Like recu")
 	likeMsg, conv := msg.(*types.LikeMessage)
 	if !conv {
 		return xerrors.Errorf("wrong type: %T", msg)
@@ -29,14 +27,10 @@ func (n *node) ExecLikeMessage(msg types.Message, pkt transport.Packet) error {
 
 	n.messageReputation.updateMessageReputation(msgID, true)
 
-	fmt.Println("UPDATE")
-	fmt.Println(n.messageReputation.messageScore)
-
 	return nil
 }
 
 func (n *node) ExecDislikeMessage(msg types.Message, pkt transport.Packet) error {
-	fmt.Println("Dislike recu")
 	dislikeMsg, conv := msg.(*types.DislikeMessage)
 	if !conv {
 		return xerrors.Errorf("wrong type: %T", msg)
@@ -47,9 +41,6 @@ func (n *node) ExecDislikeMessage(msg types.Message, pkt transport.Packet) error
 	}
 
 	n.messageReputation.updateMessageReputation(msgID, false)
-
-	fmt.Println("UPDATE")
-	fmt.Println(n.messageReputation.messageScore)
 
 	return nil
 }

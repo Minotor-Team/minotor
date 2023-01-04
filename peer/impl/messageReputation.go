@@ -19,8 +19,8 @@ func (reputation *messageReputation) updateMessageReputation(msgID int64, like b
 	reputation.Lock()
 	defer reputation.Unlock()
 	if like {
-		reputation.messageScore[msgID] += 1
+		reputation.messageScore[msgID]++
 	} else {
-		reputation.messageScore[msgID] -= 1
+		reputation.messageScore[msgID]--
 	}
 }

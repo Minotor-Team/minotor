@@ -72,7 +72,6 @@ type node struct {
 	searchsHandler  *channelsHandler
 	paxosHandler    *paxosHandler
 	// reputation !
-	// reputation        *types.ReputationValue
 	messageReputation *messageReputation
 }
 
