@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.dedis.ch/cs438/peer"
+	"go.dedis.ch/cs438/transport"
 	"go.dedis.ch/cs438/types"
 	"golang.org/x/xerrors"
 )
@@ -23,7 +24,7 @@ type SybilLimitNodeImpl struct {
 }
 
 func NewSybilLimitNodeImpl(conf peer.Configuration) *SybilLimitNodeImpl {
-	return &SybilLimitNodeImpl{
+	node := &SybilLimitNodeImpl{
 		Peer:                NewPeer(conf),
 		conf:                conf,
 		routingTable:        NewSybilRoutingTable(),
@@ -31,6 +32,17 @@ func NewSybilLimitNodeImpl(conf peer.Configuration) *SybilLimitNodeImpl {
 		tailStore:           newDataStore[uint](),
 		notificationService: newNotificationService(),
 	}
+
+	routeCallback := func(msg types.Message, pkt transport.Packet) error {
+		v, ok := msg.(types.RouteMessage)
+		if !ok {
+			return xerrors.Errorf("%v is not a RouteMessage", msg)
+		}
+		return node.PropagateRandomRoute(v, pkt.Header.Source)
+	}
+	node.conf.MessageRegistry.RegisterMessageCallback(types.RouteMessage{}.NewEmpty(), routeCallback)
+
+	return node
 }
 
 // Executed by each suspect:

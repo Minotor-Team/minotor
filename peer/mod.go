@@ -1,15 +1,23 @@
 package peer
 
 import (
+	"time"
+
 	"go.dedis.ch/cs438/registry"
 	"go.dedis.ch/cs438/storage"
 	"go.dedis.ch/cs438/transport"
-	"time"
 )
 
 // Peer defines the interface of a peer in the Peerster system. It embeds all
 // the interfaces that will have to be implemented.
 type Peer interface {
+	Service
+	Messaging
+	DataSharing
+	SybilLimitNode
+}
+
+type PaxosPeer interface {
 	Service
 	Messaging
 	DataSharing
