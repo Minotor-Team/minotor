@@ -290,7 +290,6 @@ func (m messaging) dislikePost(w http.ResponseWriter, r *http.Request) {
 			http.StatusInternalServerError)
 		return
 	}
-	// TODO unicast ? or senddislikes ?
 	err = m.node.SendDisLike(res.Dest, res.Msg)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
