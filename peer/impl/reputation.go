@@ -6,6 +6,6 @@ import "go.dedis.ch/cs438/types"
 // (it would be the total of its messages). Moreover he has the ability to like or dislike messages of other peers
 // and change their corresponding reputation score.
 
-func (n *node) InitReputationCheck(userID string, reputScore int) {
+func (n *node) InitReputationCheck(userID string, reputScore string) {
 	n.Consensus(userID, reputScore, types.Reputation)
 }

@@ -402,7 +402,7 @@ func (n *node) ExecPaxosPrepareMessage(msg types.Message, pkt transport.Packet) 
 	}
 
 	// process prepare message and create promise message
-	promise := n.paxosHandler.respondToPrepareMsg(*paxosPrepareMsg)
+	promise := n.tagHandler.respondToPrepareMsg(*paxosPrepareMsg)
 	if promise == nil {
 		return nil
 	}
@@ -438,7 +438,7 @@ func (n *node) ExecPaxosProposeMessage(msg types.Message, pkt transport.Packet) 
 	}
 
 	// process propose message and create accept message
-	accept := n.paxosHandler.respondToProposeMsg(*paxosProposeMsg)
+	accept := n.tagHandler.respondToProposeMsg(*paxosProposeMsg)
 	if accept == nil {
 		return nil
 	}
@@ -462,7 +462,7 @@ func (n *node) ExecPaxosPromiseMessage(msg types.Message, pkt transport.Packet) 
 	}
 
 	// process promise message
-	n.paxosHandler.respondToPromiseMsg(*paxosPromiseMsg)
+	n.tagHandler.respondToPromiseMsg(*paxosPromiseMsg)
 
 	return nil
 }
@@ -476,7 +476,7 @@ func (n *node) ExecPaxosAcceptMessage(msg types.Message, pkt transport.Packet) e
 	}
 
 	// process accept message and create TLC message
-	TLCMsg, err := n.paxosHandler.respondToAcceptMsg(*paxosAcceptMsg, n)
+	TLCMsg, err := n.tagHandler.respondToAcceptMsg(*paxosAcceptMsg, n)
 	if err != nil || TLCMsg.Block.Hash == nil {
 		return err
 	}
@@ -495,7 +495,7 @@ func (n *node) ExecTLCMessage(msg types.Message, pkt transport.Packet) error {
 	}
 
 	// process TLC message and check if need to be broadcasted
-	broadcasted, err := n.paxosHandler.respondToTLCMsg(*TLCMsg, n)
+	broadcasted, err := n.tagHandler.respondToTLCMsg(*TLCMsg, n)
 	if err != nil {
 		return err
 	}
