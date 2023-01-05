@@ -266,10 +266,7 @@ func (m messaging) likePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = m.node.SendLike(res.Dest, res.Msg)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
+	m.node.InitReputationCheck()
 }
 func (m messaging) dislikePost(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
