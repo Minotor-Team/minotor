@@ -196,15 +196,16 @@ class Messaging extends BaseElement {
 class Like extends BaseElement {
 
     // reputation 
-    async sendLike(msgID, destination) {
+    async updateMsgReputation(isLike, msgID, destination) {
         const proxyAddressElement = document.querySelector('td[data-peerinfo-target="peerAddr"]');
         const proxyAddressText = proxyAddressElement.textContent;
-        const addr = proxyAddressText + "/messaging/like";
+        const typeMsg = (isLike) ? "like" : "dislike";
+        const addr = proxyAddressText + "/messaging/" + typeMsg;
 
         const msg = {
             "Dest": destination,
             "Msg": {
-                "Type": "like",
+                "Type": typeMsg,
                 "payload": {
                     "Message": msgID
                 }
@@ -220,42 +221,10 @@ class Like extends BaseElement {
         };
         try {
             await this.fetch(addr, fetchArgs);
-            // this.flash.printSuccess("like successfully sended");
         } catch (e) {
-            // this.flash.printError("failed to send like: " + e);
         }
     }
 
-    async sendDisLike(msgID, destination) {
-        const proxyAddressElement = document.querySelector('td[data-peerinfo-target="peerAddr"]');
-        const proxyAddressText = proxyAddressElement.textContent;
-        const addr = proxyAddressText + "/messaging/dislike";
-
-        const msg = {
-            "Dest": destination,
-            "Msg": {
-                "Type": "dislike",
-                "payload": {
-                    "Message": msgID
-                }
-            }
-        };
-
-        const fetchArgs = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(msg)
-        };
-
-        try {
-            await this.fetch(addr, fetchArgs);
-            // this.flash.printSuccess("dislike successfully sended");
-        } catch (e) {
-            // this.flash.printError("failed to send dislike: " + e);
-        }
-    }
 }
 
 class Unicast extends BaseElement {
@@ -512,7 +481,7 @@ class Packets extends BaseElement {
                 // send Like Msg to container id (IP of the node who created the message)
                 // use the like button id to identify the message ID 
                 const like = new Like();
-                like.sendLike(el.id, container.id);
+                like.updateMsgReputation(true, el.id, container.id);
 
             }
             function handleDisLikeClick() {
@@ -530,7 +499,7 @@ class Packets extends BaseElement {
 
                 // send DisLike Msg to container id (IP of the node who created the message)
                 const like = new Like();
-                like.sendDisLike(el.id, container.id);
+                like.updateMsgReputation(false, el.id, container.id);
 
             }
 
