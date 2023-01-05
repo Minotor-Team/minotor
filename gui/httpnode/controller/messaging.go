@@ -266,7 +266,8 @@ func (m messaging) likePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m.node.InitReputationCheck()
+	actualScore := 0
+	m.node.InitReputationCheck("", actualScore)
 }
 func (m messaging) dislikePost(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -287,10 +288,10 @@ func (m messaging) dislikePost(w http.ResponseWriter, r *http.Request) {
 			http.StatusInternalServerError)
 		return
 	}
-	err = m.node.SendDisLike(res.Dest, res.Msg)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
+
+	actualScore := 0
+	m.node.InitReputationCheck("", actualScore)
+
 }
 
 func (m messaging) broadcastPost(w http.ResponseWriter, r *http.Request) {

@@ -6,7 +6,7 @@ import "fmt"
 // (it would be the total of its messages). Moreover he has the ability to like or dislike messages of other peers
 // and change their corresponding reputation score.
 
-func (n *node) InitReputationCheck(value int) {
+func (n *node) InitReputationCheck(userID string, reputScore int) {
 	// n.Tag()
 	fmt.Println("ss")
 }
