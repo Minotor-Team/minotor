@@ -74,7 +74,7 @@ func (n *node) listeningRoutine() {
 		// display error if any
 		if err != nil {
 			atomic.StoreUint32(&n.run, 0)
-			log.Err(err).Msg("failed to process packet")
+			log.Err(err).Msgf("%s: failed to process packet", n.soc.GetAddress())
 		}
 	}
 

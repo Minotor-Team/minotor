@@ -12,12 +12,12 @@ func (m RouteMessage) NewEmpty() Message {
 
 // Name implements types.Message.
 func (RouteMessage) Name() string {
-	return "forwardroute"
+	return "route"
 }
 
 // String implements types.Message.
 func (m RouteMessage) String() string {
-	return fmt.Sprintf("ForwardRouteMessage{length: %d, id: %d, budget: %d, key: %s, mac: %s>", m.Length, m.ID, m.Budget, m.Data, m.MAC)
+	return fmt.Sprintf("RouteMessage{length: %d, id: %d, budget: %d, key: %s, mac: %s>", m.Length, m.ID, m.Budget, m.Data, m.MAC)
 }
 
 // HTML implements types.Message.

@@ -14,20 +14,20 @@ import (
 	"golang.org/x/xerrors"
 )
 
-type SybilLimitNodeImpl struct {
+type RouteNode struct {
 	peer.Peer
 	conf                peer.Configuration
-	routingTable        SybilRoutingTable
+	routingTable        *SybilRoutingTable
 	keyStore            dataStore[string]
 	tailStore           dataStore[uint]
 	notificationService notificationService
 }
 
-func NewSybilLimitNodeImpl(conf peer.Configuration) *SybilLimitNodeImpl {
-	node := &SybilLimitNodeImpl{
+func NewRouteNode(conf peer.Configuration, routeSeed int64, socialProfile peer.SocialProfil) peer.RoutePeer {
+	node := &RouteNode{
 		Peer:                NewPeer(conf),
 		conf:                conf,
-		routingTable:        NewSybilRoutingTable(),
+		routingTable:        NewSybilRoutingTable(routeSeed, socialProfile),
 		keyStore:            newDataStore[string](),
 		tailStore:           newDataStore[uint](),
 		notificationService: newNotificationService(),
@@ -53,7 +53,7 @@ func NewSybilLimitNodeImpl(conf peer.Configuration) *SybilLimitNodeImpl {
 
 // Each route need to have an id. This id is used to identify the route (to differentiate the routing permutations).
 // It must be unique for each route, and in the range [1, r] for the verifier (as there is a mapping with the balance).
-func (n *SybilLimitNodeImpl) StartRandomRoute(budget uint, id uint, timeout time.Duration) (string, error) {
+func (n *RouteNode) StartRandomRoute(budget uint, id uint, timeout time.Duration) (string, error) {
 	neighbor, ok := n.routingTable.GetRandomNeighbor()
 	if !ok {
 		return "", xerrors.Errorf("No neighbor to start random route")
@@ -74,7 +74,7 @@ func (n *SybilLimitNodeImpl) StartRandomRoute(budget uint, id uint, timeout time
 }
 
 // Build the route and sends it.
-func (n *SybilLimitNodeImpl) sendRoute(routeLength uint, budget uint,
+func (n *RouteNode) sendRoute(routeLength uint, budget uint,
 	key string, id uint, dest string, reversed bool, mustRegister bool) error {
 
 	mac, err := n.computeMAC(budget, key, id, dest)
@@ -104,17 +104,17 @@ func (n *SybilLimitNodeImpl) sendRoute(routeLength uint, budget uint,
 }
 
 // Return the node public key.
-func (n *SybilLimitNodeImpl) getKey() string {
+func (n *RouteNode) getKey() string {
 	return n.conf.Socket.GetAddress()
 }
 
 // Compute a basic MAC to conform to the paper.
 // The MAC is computed as follows:
 // MAC = SHA256(Budget || Key || ID || SharedKey)
-func (n *SybilLimitNodeImpl) computeMAC(budget uint, key string, id uint, dest string) (string, error) {
-	sharedKey, err := n.routingTable.GetSharedKey(dest)
-	if err != nil {
-		return "", xerrors.Errorf("Cannot compute the MAC: %v", err)
+func (n *RouteNode) computeMAC(budget uint, key string, id uint, dest string) (string, error) {
+	sharedKey, ok := n.routingTable.GetSharedKey(dest)
+	if !ok {
+		return "", xerrors.Errorf("computeMAC: Cannot compute the MAC without a shared key with %v", dest)
 	}
 	h := crypto.SHA256.New()
 	h.Write([]byte(fmt.Sprint(budget)))
@@ -128,7 +128,7 @@ func (n *SybilLimitNodeImpl) computeMAC(budget uint, key string, id uint, dest s
 
 const MIN_BUDGET uint = 1
 
-func (n *SybilLimitNodeImpl) PropagateRandomRoute(msg types.RouteMessage, sender string) error {
+func (n *RouteNode) PropagateRandomRoute(msg types.RouteMessage, sender string) error {
 	mac := msg.MAC
 	budget := msg.Budget
 	data := msg.Data
@@ -177,88 +177,69 @@ func toEdge(src, dst string) string {
 	return fmt.Sprintf("%s->%s", src, dst)
 }
 
-func (n *SybilLimitNodeImpl) nextHop(msg types.RouteMessage, sender string) (string, error) {
+func (n *RouteNode) nextHop(msg types.RouteMessage, sender string) (string, error) {
 	id := msg.ID
 	reversed := msg.Reversed
-	if reversed {
-		return n.routingTable.GetNextReversedHop(id, sender)
+	hop, err := n.routingTable.GetNextHop(id, sender, reversed)
+	if err != nil {
+		return "", xerrors.Errorf("nextHop: %v", err)
 	}
-	return n.routingTable.GetNextHop(id, sender)
+	return hop, err
 }
 
 // A routing table to perform random routes.
 type SybilRoutingTable struct {
-	// The social links of the node.
-	socialNeighbors []string
-	// A mapping from neighbors to their index.
-	socialNeighborsMapping map[string]uint
+	lock         sync.RWMutex
+	socialProfil peer.SocialProfil
+	// A source to generate the permutations.
+	permutationSource *rand.Rand
 	// The routing tables of the node. It corresponds to the permutations for each s-instance.
 	// A route message coming from neighbor i is forwarded to the neighbor at index routingPermutations[id][i].
 	routingPermutations map[uint][]uint
 	// The reverse routing permutations. If x -> perm(x) in routingPermutations,
 	// then perm(x) -> x in reversedRoutingPermutations.
 	reversedRoutingPermutations map[uint][]uint
-
-	// A key store for the key shared between the node and its neighbors
-	keychain map[string]string
 }
 
-func NewSybilRoutingTable() SybilRoutingTable {
-	return SybilRoutingTable{
-		socialNeighbors:             []string{},
-		socialNeighborsMapping:      make(map[string]uint),
+func NewSybilRoutingTable(routeSeed int64, socialProfil peer.SocialProfil) *SybilRoutingTable {
+	return &SybilRoutingTable{
+		socialProfil:                socialProfil,
 		routingPermutations:         make(map[uint][]uint),
+		permutationSource:           rand.New(rand.NewSource(routeSeed)),
 		reversedRoutingPermutations: make(map[uint][]uint),
-		keychain:                    make(map[string]string),
 	}
 }
 
-// Setup a shared key with the given neighbor.
-// It is a dummy implementation to include a MAC.
-func (s *SybilRoutingTable) setupKeyWith(neighbor string) {
-	s.keychain[neighbor] = "DEFAULT_KEY"
-}
-
-func (s *SybilRoutingTable) GetSharedKey(neighbor string) (string, error) {
-	key, ok := s.keychain[neighbor]
-	if !ok {
-		return "", xerrors.Errorf("No shared key with %s", neighbor)
-	}
-	return key, nil
-}
-
-// Add a social neighbor if it is not already a neighbor.
-// Returns true if the neighbor was added, false otherwise.
-func (s *SybilRoutingTable) AddSocialNeighbor(addr string) bool {
-	_, isAlreadyNeighbor := s.socialNeighborsMapping[addr]
-	if isAlreadyNeighbor {
-		return false
-	}
-	index := uint(len(s.socialNeighbors))
-	s.socialNeighbors = append(s.socialNeighbors, addr)
-	s.socialNeighborsMapping[addr] = index
-	s.setupKeyWith(addr)
-	return true
+func (s *SybilRoutingTable) GetSharedKey(neighbor string) (string, bool) {
+	return s.socialProfil.GetSharedKey(neighbor)
 }
 
 // Returns a random neighbor and true if any, or false otherwise.
 func (s *SybilRoutingTable) GetRandomNeighbor() (string, bool) {
-	size := len(s.socialNeighbors)
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	size := s.socialProfil.NumberOfRelation()
 	if size <= 0 {
 		return "", false
 	}
-	index := rand.Intn(size)
-	return s.socialNeighbors[index], true
+	index := (uint)(rand.Intn((int)(size)))
+	return s.socialProfil.GetRelation(index), true
 }
 
 // Add a given permutation for the s-instance with the provided id.
-// If the permutation already exists, it is not replaced and it returns false.
-func (s *SybilRoutingTable) AddRoutingPermutation(id uint, perm []uint) bool {
+// It overwrite the potential present permutation.
+func (s *SybilRoutingTable) addRoutingPermutation(id uint, reversed bool) []uint {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	nbrNeighbors := s.socialProfil.NumberOfRelation()
+	perm := s.permutationSource.Perm((int)(nbrNeighbors))
 	permCopy := make([]uint, len(perm))
-	copy(permCopy, perm)
-	_, ok := s.routingPermutations[id]
+	for i, p := range perm {
+		permCopy[i] = uint(p)
+	}
+	currentPerm, ok := s.routingPermutations[id]
 	if ok {
-		return false
+		return currentPerm
 	}
 	reversePerm := make([]uint, len(perm))
 	for i, v := range perm {
@@ -266,32 +247,59 @@ func (s *SybilRoutingTable) AddRoutingPermutation(id uint, perm []uint) bool {
 	}
 	s.routingPermutations[id] = permCopy
 	s.reversedRoutingPermutations[id] = reversePerm
-	return true
+	if reversed {
+		return reversePerm
+	}
+	return permCopy
 }
 
-func (s *SybilRoutingTable) GetNextHop(id uint, sender string) (string, error) {
-	perm, ok := s.routingPermutations[id]
-	if !ok {
-		return "", fmt.Errorf("no permutation for id %d", id)
-	}
-	return s.nextHopWithPerm(sender, perm)
-}
+// Returns the next hop for the route with the provided id, when the route comes from the provided sender.
+// If reversed if true, the route uses the reverse permutation.
+func (s *SybilRoutingTable) GetNextHop(id uint, sender string, reversed bool) (string, error) {
+	readHop := func(id uint, sender string, reversed bool) (string, bool, error) {
+		s.lock.RLock()
+		defer s.lock.RUnlock()
+		var perm []uint
+		var ok bool
+		if reversed {
+			perm, ok = s.reversedRoutingPermutations[id]
+		} else {
+			perm, ok = s.routingPermutations[id]
+		}
 
-func (s *SybilRoutingTable) GetNextReversedHop(id uint, sender string) (string, error) {
-	perm, ok := s.reversedRoutingPermutations[id]
-	if !ok {
-		return "", fmt.Errorf("no permutation for id %d", id)
+		if ok {
+			hop, err := s.nextHopWithPerm(sender, perm)
+			return hop, ok, err
+		}
+
+		return "", ok, nil
 	}
-	return s.nextHopWithPerm(sender, perm)
+	nextHop, isPresent, err := readHop(id, sender, reversed)
+	if err != nil {
+		return "", xerrors.Errorf("GetNextHop: %v", err)
+	}
+
+	if !isPresent {
+		s.lock.Lock()
+		defer s.lock.Unlock()
+		perm := s.addRoutingPermutation(id, reversed)
+		hop, err := s.nextHopWithPerm(sender, perm)
+		if err != nil {
+			return "", xerrors.Errorf("GetNextHop: %v", err)
+		}
+		return hop, nil
+	}
+
+	return nextHop, nil
 }
 
 func (s *SybilRoutingTable) nextHopWithPerm(neighbor string, perm []uint) (string, error) {
-	neighborIndex, ok := s.socialNeighborsMapping[neighbor]
+	neighborIndex, ok := s.socialProfil.GetRelationIndex(neighbor)
 	if !ok {
 		return "", fmt.Errorf("neighbor %s is not a neighbor", neighbor)
 	}
 	nextHopIndex := perm[neighborIndex]
-	return s.socialNeighbors[nextHopIndex], nil
+	return s.socialProfil.GetRelation(nextHopIndex), nil
 }
 
 type dataStore[K comparable] struct {
@@ -339,22 +347,30 @@ func newNotificationService() notificationService {
 // Wait for the notification of the route with the given id.
 // Returns the tail of the route and true, if it succeeded within the timeout.
 // Returns false otherwise.
+// A timeout of 0 means that the function will wait indefinitely.
 func (n *notificationService) Wait(id uint, timeout time.Duration) (string, bool) {
 	timer := time.NewTimer(timeout)
 	ch := make(chan string, 1)
 	n.lock.Lock()
 	n.channels[id] = &ch
 	n.lock.Unlock()
-	select {
-	case v, ok := <-ch:
+
+	if timeout > 0 {
+		select {
+		case v, ok := <-ch:
+			return v, ok
+		case <-timer.C:
+			// We ensure that no one can notify for this id anymore.
+			n.lock.Lock()
+			delete(n.channels, id)
+			n.lock.Unlock()
+			return "", false
+		}
+	} else {
+		v, ok := <-ch
 		return v, ok
-	case <-timer.C:
-		// We ensure that no one can notify for this id anymore.
-		n.lock.Lock()
-		delete(n.channels, id)
-		n.lock.Unlock()
-		return "", false
 	}
+
 }
 
 func (n *notificationService) Notify(id uint, data string) bool {

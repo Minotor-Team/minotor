@@ -10,7 +10,7 @@ import (
 )
 
 // creates a new peer
-func NewPaxosPeer(conf peer.Configuration) peer.PaxosPeer {
+func NewPeer(conf peer.Configuration) peer.Peer {
 
 	node := &node{
 		wg:              sync.WaitGroup{},
@@ -50,10 +50,10 @@ func NewPaxosPeer(conf peer.Configuration) peer.PaxosPeer {
 	return node
 }
 
-func NewPeer(conf peer.Configuration) peer.Peer {
-	n := NewSybilLimitNodeImpl(conf)
-	return n
-}
+// func NewPeer(conf peer.Configuration) peer.Peer {
+// 	n := NewRouteNode(conf, 0)
+// 	return n
+// }
 
 // implements a peer to build a Peerster system
 type node struct {
