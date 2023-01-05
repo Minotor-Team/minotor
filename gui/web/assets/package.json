@@ -1,0 +1,12 @@
+{
+  "name": "rtm",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.11.0"
+  }
+}

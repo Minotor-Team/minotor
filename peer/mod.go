@@ -11,6 +11,7 @@ import (
 // Peer defines the interface of a peer in the Peerster system. It embeds all
 // the interfaces that will have to be implemented.
 type Peer interface {
+	Reputation
 	Service
 	Identity
 	Messaging

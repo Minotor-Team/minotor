@@ -12,6 +12,11 @@ import (
 // Messaging defines the functions for the basic functionalities to exchange
 // messages between peers.
 type Messaging interface {
+
+	// reputation
+	SendLike(dest string, msg transport.Message) error
+	SendDisLike(dest string, msg transport.Message) error
+
 	// Unicast sends a packet to a given destination. If the destination is the
 	// same as the node's address, then the message must still be sent to the
 	// node via its socket. Use transport.NewHeader to build the packet's
