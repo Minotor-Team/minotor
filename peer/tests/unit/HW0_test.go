@@ -14,11 +14,6 @@ import (
 	"go.dedis.ch/cs438/types"
 )
 
-const (
-	Email = "test@epfl.ch"
-	UID   = "t03Lyjrn1OOktWduS0WLfSi2gGG3"
-)
-
 // Some tests for HW0 will use the udp network with port 0.
 
 // 0-1
@@ -236,7 +231,7 @@ func Test_HW0_Network_Multiple(t *testing.T) {
 func Test_HW0_Messaging_AddPeer(t *testing.T) {
 	transp := channelFac()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:1", z.WithEmail(Email), z.WithUID(UID))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:1")
 	defer node1.Stop()
 
 	// > at the begining the routing table should only contain the entry to
@@ -275,8 +270,7 @@ func Test_HW0_Messaging_AddPeer(t *testing.T) {
 func Test_HW0_Messaging_SetRoutingEntry(t *testing.T) {
 	transp := channelFac()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:1",
-		z.WithEmail(Email), z.WithUID(UID), z.WithAutostart(false))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:1", z.WithAutostart(false))
 
 	// > initial routing table should have one element
 
@@ -324,8 +318,6 @@ func Test_HW0_Service_RegisterNotify(t *testing.T) {
 			registryHandler, status := fake.GetHandler(t)
 
 			node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-				z.WithEmail(Email),
-				z.WithUID(UID),
 				z.WithMessage(fake, registryHandler))
 			defer node1.Stop()
 
@@ -370,12 +362,10 @@ func Test_HW0_Messaging_Unicast(t *testing.T) {
 			fake := z.NewFakeMessage(t)
 			handler, status := fake.GetHandler(t)
 
-			node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-				z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, nil))
+			node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, nil))
 			defer node1.Stop()
 
-			node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-				z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler))
+			node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler))
 			defer node2.Stop()
 
 			node1.AddPeer(node2.GetAddr())
@@ -441,10 +431,10 @@ func Test_HW0_Messaging_Unicast_Fail(t *testing.T) {
 		return func(t *testing.T) {
 			t.Parallel()
 
-			node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
+			node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
 			defer node1.Stop()
 
-			node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithEmail(Email), z.WithUID(UID))
+			node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0")
 			defer node2.Stop()
 
 			chat := types.ChatMessage{
@@ -495,16 +485,13 @@ func Test_HW0_Messaging_Relaying(t *testing.T) {
 			fake := z.NewFakeMessage(t)
 			handler, status := fake.GetHandler(t)
 
-			node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-				z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, nil))
+			node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, nil))
 			defer node1.Stop()
 
-			node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-				z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, nil))
+			node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, nil))
 			defer node2.Stop()
 
-			node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-				z.WithEmail(Email), z.WithUID(UID), z.WithMessage(fake, handler))
+			node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithMessage(fake, handler))
 			defer node3.Stop()
 
 			//          relay

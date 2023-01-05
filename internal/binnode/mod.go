@@ -108,8 +108,6 @@ func (b *binnode) Start() error {
 		"start",
 		"--proxyaddr", "127.0.0.1:0",
 		"--nodeaddr", b.conf.Socket.GetAddress(),
-		"--email", b.conf.Email,
-		"--uid", b.conf.UserUID,
 		"--antientropy", b.conf.AntiEntropyInterval.String(),
 		"--heartbeat", b.conf.HeartbeatInterval.String(),
 		"--acktimeout", b.conf.AckTimeout.String(),

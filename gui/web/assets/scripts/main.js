@@ -137,13 +137,22 @@ class Flash extends Stimulus.Controller {
 
 class PeerInfo extends Stimulus.Controller {
     static get targets() {
-        return ["peerAddr", "socketAddr"];
+        return ["name", "email", "phone", "peerAddr", "socketAddr"];
     }
 
     async initialize() {
         const queryDict = this.getQueryArgs();
+        const name = decodeURIComponent(queryDict["name"]).replace("+", " ");
+        const email = decodeURIComponent(queryDict["email"]);
+        const phone = decodeURIComponent(queryDict["phone"]);
         const endpoint = "http://" + decodeURIComponent(queryDict["addr"]);
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
         this.endpoint = endpoint;
+        this.nameTarget.innerText = this.name;
+        this.emailTarget.innerText = this.email;
+        this.phoneTarget.innerText = this.phone;
         this.peerAddrTarget.innerText = this.endpoint;
 
         const addr = this.endpoint + "/socket/address";
@@ -252,7 +261,6 @@ class Unicast extends BaseElement {
     }
 }
 
-
 class Routing extends BaseElement {
     static get targets() {
         return ["table", "graphviz", "peer", "origin", "relay"];
@@ -260,6 +268,7 @@ class Routing extends BaseElement {
 
     initialize() {
         this.update();
+        this.initIdentityCheck();
     }
 
     async update() {
@@ -297,6 +306,33 @@ class Routing extends BaseElement {
             this.graphvizTarget.appendChild(element);
         } catch (e) {
             this.flash.printError("Failed to display routing: " + e);
+        }
+    }
+
+    async initIdentityCheck() {
+        const addr = this.peerInfo.getAPIURL("/identity/check");
+
+        const info = {
+            "Name": this.peerInfo.name,
+            "Email": this.peerInfo.email,
+            "Phone": this.peerInfo.phone
+        };
+
+        const fetchArgs = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(info)
+        };
+
+        try {
+            await this.fetch(addr, fetchArgs);
+
+            this.flash.printSuccess("Welcome " + this.peerInfo.name + "! Your identity will be verified soon.");
+
+        } catch (e) {
+            this.flash.printError("failed to send identity check: " + e);
         }
     }
 

@@ -23,8 +23,7 @@ import (
 func Test_HW3_Tag_Alone(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(1), z.WithPaxosID(1))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(1), z.WithPaxosID(1))
 	defer node1.Stop()
 
 	err := node1.Tag("a", "b")
@@ -35,8 +34,7 @@ func Test_HW3_Tag_Alone(t *testing.T) {
 	ins := node1.GetIns()
 	require.Len(t, ins, 0)
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(0), z.WithPaxosID(1))
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(0), z.WithPaxosID(1))
 	defer node2.Stop()
 
 	// > no messages have been sent
@@ -52,8 +50,7 @@ func Test_HW3_Tag_Alone(t *testing.T) {
 func Test_HW3_Paxos_Acceptor_Prepare_Wrong_Step(t *testing.T) {
 	transp := channel.NewTransport()
 
-	acceptor := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(1), z.WithPaxosID(1))
+	acceptor := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(1), z.WithPaxosID(1))
 	defer acceptor.Stop()
 
 	proposer, err := transp.CreateSocket("127.0.0.1:0")
@@ -98,8 +95,7 @@ func Test_HW3_Paxos_Acceptor_Prepare_Wrong_Step(t *testing.T) {
 func Test_HW3_Paxos_Acceptor_Prepare_Wrong_ID(t *testing.T) {
 	transp := channel.NewTransport()
 
-	acceptor := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(1), z.WithPaxosID(1))
+	acceptor := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(1), z.WithPaxosID(1))
 	defer acceptor.Stop()
 
 	proposer, err := transp.CreateSocket("127.0.0.1:0")
@@ -144,8 +140,7 @@ func Test_HW3_Paxos_Acceptor_Prepare_Wrong_ID(t *testing.T) {
 func Test_HW3_Paxos_Acceptor_Prepare_Correct(t *testing.T) {
 	transp := channel.NewTransport()
 
-	acceptor := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(1), z.WithPaxosID(1))
+	acceptor := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(1), z.WithPaxosID(1))
 	defer acceptor.Stop()
 
 	proposer, err := transp.CreateSocket("127.0.0.1:0")
@@ -209,8 +204,7 @@ func Test_HW3_Paxos_Acceptor_Prepare_Correct(t *testing.T) {
 func Test_HW3_Paxos_Acceptor_Propose_Wrong_Step(t *testing.T) {
 	transp := channel.NewTransport()
 
-	acceptor := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(1), z.WithPaxosID(1))
+	acceptor := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(1), z.WithPaxosID(1))
 	defer acceptor.Stop()
 
 	proposer, err := transp.CreateSocket("127.0.0.1:0")
@@ -259,8 +253,7 @@ func Test_HW3_Paxos_Acceptor_Propose_Wrong_Step(t *testing.T) {
 func Test_HW3_Paxos_Acceptor_Propose_Wrong_ID(t *testing.T) {
 	transp := channel.NewTransport()
 
-	acceptor := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(1), z.WithPaxosID(1))
+	acceptor := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(1), z.WithPaxosID(1))
 	defer acceptor.Stop()
 
 	proposer, err := transp.CreateSocket("127.0.0.1:0")
@@ -311,8 +304,7 @@ func Test_HW3_Paxos_Acceptor_Propose_Wrong_ID(t *testing.T) {
 func Test_HW3_Paxos_Acceptor_Prepare_Already_Promised(t *testing.T) {
 	transp := channel.NewTransport()
 
-	acceptor := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(2), z.WithPaxosID(1))
+	acceptor := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(2), z.WithPaxosID(1))
 	defer acceptor.Stop()
 
 	proposer, err := transp.CreateSocket("127.0.0.1:0")
@@ -437,8 +429,7 @@ func Test_HW3_Paxos_Acceptor_Prepare_Already_Promised(t *testing.T) {
 func Test_HW3_Paxos_Acceptor_Propose_Correct(t *testing.T) {
 	transp := channel.NewTransport()
 
-	acceptor := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(1), z.WithPaxosID(1))
+	acceptor := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(1), z.WithPaxosID(1))
 	defer acceptor.Stop()
 
 	proposer, err := transp.CreateSocket("127.0.0.1:0")
@@ -499,7 +490,6 @@ func Test_HW3_Paxos_Proposer_Prepare_Promise_Wrong_Step(t *testing.T) {
 
 	// Two nodes needed for a consensus. Setting a special paxos ID.
 	proposer := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID),
 		z.WithPaxosProposerRetry(time.Hour),
 		z.WithTotalPeers(2),
 		z.WithPaxosID(paxosID))
@@ -579,7 +569,6 @@ func Test_HW3_Paxos_Proposer_Prepare_Propose_Correct(t *testing.T) {
 
 	// TWO nodes needed for a consensus. Setting a special paxos ID.
 	proposer := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID),
 		z.WithPaxosProposerRetry(time.Hour),
 		z.WithTotalPeers(2),
 		z.WithPaxosID(paxosID),
@@ -662,8 +651,7 @@ func Test_HW3_TLC_Move_Step_Not_Enough(t *testing.T) {
 	transp := channel.NewTransport()
 
 	// Threshold = 2
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithAckTimeout(0), z.WithTotalPeers(2))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithAckTimeout(0), z.WithTotalPeers(2))
 	defer node1.Stop()
 
 	socketX, err := transp.CreateSocket("127.0.0.1:0")
@@ -739,8 +727,7 @@ func Test_HW3_TLC_Move_Step_OK(t *testing.T) {
 	transp := channel.NewTransport()
 
 	// Threshold = 2
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithAckTimeout(0), z.WithTotalPeers(2))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithAckTimeout(0), z.WithTotalPeers(2))
 	defer node1.Stop()
 
 	socketX, err := transp.CreateSocket("127.0.0.1:0")
@@ -820,8 +807,7 @@ func Test_HW3_TLC_Move_Step_Catchup(t *testing.T) {
 	transp := channel.NewTransport()
 
 	// Threshold = 1
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithAckTimeout(0), z.WithTotalPeers(1))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithAckTimeout(0), z.WithTotalPeers(1))
 	defer node1.Stop()
 
 	socketX, err := transp.CreateSocket("127.0.0.1:0")
@@ -985,12 +971,10 @@ func Test_HW3_TLC_Move_Step_Catchup(t *testing.T) {
 func Test_HW3_Tag_Paxos_Simple_Consensus(t *testing.T) {
 	transp := channel.NewTransport()
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(2), z.WithPaxosID(1))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(2), z.WithPaxosID(1))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(2), z.WithPaxosID(2))
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(2), z.WithPaxosID(2))
 	defer node2.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -1221,16 +1205,13 @@ func Test_HW3_Tag_Paxos_No_Consensus(t *testing.T) {
 
 	// Threshold = 3
 	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email),
-		z.WithUID(UID),
 		z.WithTotalPeers(3),
 		z.WithPaxosID(1),
 		z.WithPaxosThreshold(threshold),
 		z.WithPaxosProposerRetry(time.Second*4))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(3), z.WithPaxosID(2))
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(3), z.WithPaxosID(2))
 	defer node2.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -1302,8 +1283,6 @@ func Test_HW3_Tag_Paxos_Eventual_Consensus(t *testing.T) {
 	// Threshold = 3
 
 	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email),
-		z.WithUID(UID),
 		z.WithTotalPeers(3),
 		z.WithPaxosID(1),
 		z.WithPaxosThreshold(threshold),
@@ -1312,8 +1291,6 @@ func Test_HW3_Tag_Paxos_Eventual_Consensus(t *testing.T) {
 	defer node1.Stop()
 
 	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email),
-		z.WithUID(UID),
 		z.WithTotalPeers(3),
 		z.WithPaxosID(2),
 		z.WithPaxosThreshold(threshold),
@@ -1323,8 +1300,6 @@ func Test_HW3_Tag_Paxos_Eventual_Consensus(t *testing.T) {
 	// Note: we set the heartbeat and antientropy so that node3 will annonce
 	// itself and get rumors.
 	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email),
-		z.WithUID(UID),
 		z.WithTotalPeers(3),
 		z.WithPaxosID(3),
 		z.WithPaxosThreshold(threshold),
@@ -1407,8 +1382,7 @@ func Test_HW3_Tag_Paxos_Name_Taken(t *testing.T) {
 	transp := channel.NewTransport()
 
 	// We set TotalPeers to use the consensus
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithAutostart(false), z.WithTotalPeers(2))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithAutostart(false), z.WithTotalPeers(2))
 
 	name, metahash := "name", "metahash"
 
@@ -1428,12 +1402,10 @@ func Test_HW3_Tag_Paxos_Catchup(t *testing.T) {
 
 	numBlocks := 10
 
-	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(3), z.WithPaxosID(1))
+	node1 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(3), z.WithPaxosID(1))
 	defer node1.Stop()
 
-	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(3), z.WithPaxosID(2))
+	node2 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(3), z.WithPaxosID(2))
 	defer node2.Stop()
 
 	node1.AddPeer(node2.GetAddr())
@@ -1463,8 +1435,7 @@ func Test_HW3_Tag_Paxos_Catchup(t *testing.T) {
 
 	// > let's add the third peer and see if it can catchup.
 
-	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-		z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(3), z.WithPaxosID(3))
+	node3 := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(3), z.WithPaxosID(3))
 	defer node3.Stop()
 
 	node3.AddPeer(node2.GetAddr())
@@ -1518,8 +1489,7 @@ func Test_HW3_Tag_Paxos_Consensus_Stress_Test(t *testing.T) {
 	nodes := make([]z.TestNode, numNodes)
 
 	for i := range nodes {
-		node := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0",
-			z.WithEmail(Email), z.WithUID(UID), z.WithTotalPeers(uint(numNodes)), z.WithPaxosID(uint(i+1)))
+		node := z.NewTestNode(t, peerFac, transp, "127.0.0.1:0", z.WithTotalPeers(uint(numNodes)), z.WithPaxosID(uint(i+1)))
 		defer node.Stop()
 
 		nodes[i] = node

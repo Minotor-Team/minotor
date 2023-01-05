@@ -34,7 +34,7 @@ h2 {
     font-size: 2em;
 }
 
-input[type="text"], [type="email"], [type="password"] {
+input[type="text"], [type="email"], [type="tel"] {
     padding: 20px 30px;
     width: 350px;
     font-size: 1em;

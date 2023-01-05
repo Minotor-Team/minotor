@@ -11,11 +11,6 @@ import (
 
 // starts the node
 func (n *node) Start() error {
-	err := n.authentication.SignIn(n.conf.Email, n.conf.UserUID)
-	if err != nil {
-		return err
-	}
-
 	// indicate that the node is running
 	atomic.StoreUint32(&n.run, 1)
 

@@ -8,8 +8,14 @@
 <body>
     <div>
         <h1>Welcome on Minotor!</h1>
-        <h2>Please enter your peer's proxy address to connect</h2>
+        <h2>Please enter the following information to connect</h2>
         <form action="node.html" method="get">
+            <input name="name" type="text" id="name" placeholder="Louis Dupont"/>
+            <br/>
+            <input name="email" type="email" id="email" placeholder="mail@epfl.ch"/>
+            <br/>
+            <input name="phone" type="tel" id="phone" placeholder="+41612345678"/>
+            <br/>
             <input name="addr" type="text" id="addr" placeholder="127.0.0.1:0"/>
             <br/>
             <input type="submit" value="Connect" />
