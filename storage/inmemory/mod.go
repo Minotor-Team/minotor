@@ -10,11 +10,11 @@ import (
 // thread-safe with a global mutex.
 func NewPersistency() storage.Storage {
 	return Storage{
-		blob:            newStore(),
-		naming:          newStore(),
-		blockchain:      newStore(),
-		reputationStore: newStore(),
-		identityStore:   newStore(),
+		blob:       newStore(),
+		naming:     newStore(),
+		blockchain: newStore(),
+		identity:   newStore(),
+		reputation: newStore(),
 	}
 }
 
@@ -22,11 +22,11 @@ func NewPersistency() storage.Storage {
 //
 // - implements storage.Storage
 type Storage struct {
-	blob            storage.Store
-	naming          storage.Store
-	blockchain      storage.Store
-	reputationStore storage.Store
-	identityStore   storage.Store
+	blob       storage.Store
+	naming     storage.Store
+	blockchain storage.Store
+	identity   storage.Store
+	reputation storage.Store
 }
 
 // GetDataBlobStore implements storage.Storage
@@ -44,13 +44,14 @@ func (s Storage) GetBlockchainStore() storage.Store {
 	return s.blockchain
 }
 
-// reputation !
-func (s Storage) GetReputationStore() storage.Store {
-	return s.reputationStore
+// GetIdentityStore implements storage.Storage
+func (s Storage) GetIdentityStore() storage.Store {
+	return s.identity
 }
 
-func (s Storage) GetIdentityStore() storage.Store {
-	return s.identityStore
+// GetReputationStore implements storage.Storage
+func (s Storage) GetReputationStore() storage.Store {
+	return s.reputation
 }
 
 func newStore() *store {
