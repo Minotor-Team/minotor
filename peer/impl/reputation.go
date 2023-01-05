@@ -5,5 +5,5 @@ package impl
 // and change their corresponding reputation score.
 
 func (n *node) InitReputationCheck(value int) {
-	n.Tag()
+	// n.Tag()
 }
