@@ -64,6 +64,7 @@ func (n *node) listeningRoutine() {
 		// process packet if destination is the node or relay it to the good destination
 		dest := pkt.Header.Destination
 		myAddr := n.soc.GetAddress()
+
 		if dest == myAddr {
 			err = n.reg.ProcessPacket(pkt)
 		} else {

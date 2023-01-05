@@ -146,11 +146,12 @@ func (pH *paxosHandler) nextID() {
 }
 
 // creates a prepare message with given source and init paramaters
-func (pH *paxosHandler) createPrepareMessage(source string, value types.PaxosValue) types.PaxosPrepareMessage {
+func (pH *paxosHandler) createPrepareMessage(source string, value types.PaxosValue, tp types.PaxosType) types.PaxosPrepareMessage {
 	pH.Lock()
 	defer pH.Unlock()
 
 	paxosPrepareMsg := types.PaxosPrepareMessage{
+		Type:   tp,
 		Step:   pH.step,
 		ID:     pH.paxosID,
 		Source: source,
@@ -165,11 +166,12 @@ func (pH *paxosHandler) createPrepareMessage(source string, value types.PaxosVal
 }
 
 // creates propose message with given value
-func (pH *paxosHandler) createProposeMessage(value types.PaxosValue) types.PaxosProposeMessage {
+func (pH *paxosHandler) createProposeMessage(value types.PaxosValue, tp types.PaxosType) types.PaxosProposeMessage {
 	pH.RLock()
 	defer pH.RUnlock()
 
 	paxosProposeMsg := types.PaxosProposeMessage{
+		Type:  tp,
 		Step:  pH.step,
 		ID:    pH.paxosID,
 		Value: value,
@@ -204,6 +206,7 @@ func (pH *paxosHandler) respondToPrepareMsg(msg types.PaxosPrepareMessage) *type
 	}
 
 	paxosPromiseMsg := types.PaxosPromiseMessage{
+		Type:          msg.Type,
 		Step:          pH.step,
 		ID:            msg.ID,
 		AcceptedID:    pH.acceptedID,
@@ -238,6 +241,7 @@ func (pH *paxosHandler) respondToProposeMsg(msg types.PaxosProposeMessage) *type
 
 	// create accept message
 	paxosAcceptMsg := types.PaxosAcceptMessage{
+		Type:  msg.Type,
 		Step:  pH.step,
 		ID:    msg.ID,
 		Value: msg.Value,
@@ -310,6 +314,7 @@ func (pH *paxosHandler) respondToAcceptMsg(msg types.PaxosAcceptMessage, n *node
 
 		// create TLC message
 		TLCMsg := types.TLCMessage{
+			Type:  msg.Type,
 			Step:  pH.step,
 			Block: block,
 		}
