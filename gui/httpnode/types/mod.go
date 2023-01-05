@@ -7,6 +7,12 @@ import (
 // AddPeerArgument is the json type to call messaging.AddPeer()
 type AddPeerArgument []string
 
+type ReputationArgument struct {
+	UserID     string
+	NbLikes    int64
+	NbDisLikes int64
+}
+
 type IdentityArgument struct {
 	Name  string
 	Email string

@@ -23,7 +23,7 @@ const main = function () {
     application.register("dataSharing", DataSharing);
     application.register("search", Search);
     application.register("naming", Naming);
-    application.register("likes", Like);
+    application.register("likes", Reputation);
 
     initCollapsible();
 };
@@ -200,7 +200,7 @@ class Messaging extends BaseElement {
     }
 }
 
-class Like extends BaseElement {
+class Reputation extends BaseElement {
 
     // reputation 
     async updateMsgReputation(isLike, msgID, destination) {
@@ -210,13 +210,9 @@ class Like extends BaseElement {
         const addr = proxyAddressText + "/messaging/" + typeMsg;
 
         const msg = {
-            "Dest": destination,
-            "Msg": {
-                "Type": typeMsg,
-                "payload": {
-                    "Message": msgID
-                }
-            }
+            "userID": "JULES",
+            "nbLikes": 1234,
+            "nbDisLikes": -182,
         };
 
         const fetchArgs = {
@@ -468,37 +464,37 @@ class Packets extends BaseElement {
             }
 
             // server
-            let ws;
+            // let ws;
 
-            function init() {
-                if (ws) {
-                    ws.onerror = ws.onopen = ws.onclose = null;
-                    ws.close();
-                }
+            // function init() {
+            //     if (ws) {
+            //         ws.onerror = ws.onopen = ws.onclose = null;
+            //         ws.close();
+            //     }
 
-                ws = new WebSocket('ws://localhost:6969');
-                ws.onopen = () => {
-                    console.log('Connection opened!');
-                }
-                ws.onmessage = (event) => {
-                    event.data.text().then((text) => {
-                        const data = JSON.parse(text);
-                        showLikes(data[0], data[1], data[2], data[3]);
-                    });
-                }
-                ws.onclose = function () {
-                    ws = null;
-                }
-            }
+            //     ws = new WebSocket('ws://localhost:6969');
+            //     ws.onopen = () => {
+            //         console.log('Connection opened!');
+            //     }
+            //     ws.onmessage = (event) => {
+            //         event.data.text().then((text) => {
+            //             const data = JSON.parse(text);
+            //             showLikes(data[0], data[1], data[2], data[3]);
+            //         });
+            //     }
+            //     ws.onclose = function () {
+            //         ws = null;
+            //     }
+            // }
+
+            // init();
+
+            // ------------ end server ------------ 
 
             function showLikes(nbLikes, nbDisLikes, likeValueID, dislikeValueID) {
                 document.getElementById(likeValueID).innerText = nbLikes;
                 document.getElementById(dislikeValueID).innerText = nbDisLikes;
             }
-            init();
-
-            // ------------ end server ------------ 
-
             function handleLikeClick() {
                 const likeElem = document.getElementById('val' + likeButt.id)
                 let currLikesNb = likeElem.innerText
@@ -508,14 +504,14 @@ class Packets extends BaseElement {
                 const dislikeButtID = likeButt.id.replace(/0/, "1")
                 const currDisLikesNb = document.getElementById('val' + dislikeButtID).innerText
                 const likeDislikes = Array.of(currLikesNb, currDisLikesNb, 'val' + likeButt.id, 'val' + dislikeButtID);
-                ws.send(JSON.stringify(likeDislikes));
+                // ws.send(JSON.stringify(likeDislikes));
                 showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3]);
                 likeButt.removeEventListener('click', handleLikeClick);
 
                 // send Like Msg to container id (IP of the node who created the message)
                 // use the like button id to identify the message ID 
-                const like = new Like();
-                like.updateMsgReputation(true, el.id, container.id);
+                const reputation = new Reputation();
+                reputation.updateMsgReputation(true, el.id, container.id);
 
             }
             function handleDisLikeClick() {
@@ -527,13 +523,13 @@ class Packets extends BaseElement {
                 const likeButtID = dislikeButt.id.replace(/1/, "0")
                 const currLikesNb = document.getElementById('val' + likeButtID).innerText
                 const likeDislikes = Array.of(currLikesNb, currDisLikesNb, 'val' + likeButtID, 'val' + dislikeButt.id);
-                ws.send(JSON.stringify(likeDislikes));
+                // ws.send(JSON.stringify(likeDislikes));
                 showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3]);
                 dislikeButt.removeEventListener('click', handleDisLikeClick);
 
                 // send DisLike Msg to container id (IP of the node who created the message)
-                const like = new Like();
-                like.updateMsgReputation(false, el.id, container.id);
+                const reputation = new Reputation();
+                reputation.updateMsgReputation(false, el.id, container.id);
 
             }
 

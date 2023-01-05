@@ -76,39 +76,6 @@ func (m messaging) UnicastHandler() http.HandlerFunc {
 	}
 }
 
-// reputation
-func (m messaging) LikeHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			m.likePost(w, r)
-		case http.MethodOptions:
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Headers", "*")
-			return
-		default:
-			http.Error(w, "forbidden method", http.StatusMethodNotAllowed)
-			return
-		}
-	}
-}
-
-func (m messaging) DisLikeHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			m.dislikePost(w, r)
-		case http.MethodOptions:
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Headers", "*")
-			return
-		default:
-			http.Error(w, "forbidden method", http.StatusMethodNotAllowed)
-			return
-		}
-	}
-}
-
 func (m messaging) BroadcastHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -244,54 +211,6 @@ func (m messaging) unicastPost(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-}
-
-func (m messaging) likePost(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
-
-	buf, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "failed to read body: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	m.log.Info().Msgf("like got the following message: %s", buf)
-
-	res := types.UnicastArgument{}
-	err = json.Unmarshal(buf, &res)
-	if err != nil {
-		http.Error(w, "failed to unmarshal like argument: "+err.Error(),
-			http.StatusInternalServerError)
-		return
-	}
-
-	actualScore := 0
-	m.node.InitReputationCheck("", actualScore)
-}
-func (m messaging) dislikePost(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
-
-	buf, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "failed to read body: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	m.log.Info().Msgf("dislike got the following message: %s", buf)
-
-	res := types.UnicastArgument{}
-	err = json.Unmarshal(buf, &res)
-	if err != nil {
-		http.Error(w, "failed to unmarshal dislike argument: "+err.Error(),
-			http.StatusInternalServerError)
-		return
-	}
-
-	actualScore := 0
-	m.node.InitReputationCheck("", actualScore)
-
 }
 
 func (m messaging) broadcastPost(w http.ResponseWriter, r *http.Request) {
