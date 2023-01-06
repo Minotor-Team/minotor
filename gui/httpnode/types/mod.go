@@ -8,9 +8,10 @@ import (
 type AddPeerArgument []string
 
 type ReputationArgument struct {
-	UserID     string
-	NbLikes    int64
-	NbDisLikes int64
+	LikerID     string
+	MsgSenderID string
+	MessID      string
+	Score       string
 }
 
 type IdentityArgument struct {

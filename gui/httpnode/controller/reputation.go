@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -78,11 +77,7 @@ func (m messaging) likePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	actualScore := res.NbLikes - res.NbDisLikes
-	fmt.Println(res.UserID)
-	fmt.Println(res.NbLikes)
-	fmt.Println(res.NbDisLikes)
-	err = m.node.InitReputationCheck("", actualScore+1)
+	err = m.node.InitReputationCheck(res.LikerID, "+1", res.MsgSenderID, res.MessID, res.Score)
 	if err != nil {
 		http.Error(w, "failed to init reputation consensus: "+err.Error(),
 			http.StatusInternalServerError)
@@ -109,8 +104,6 @@ func (m messaging) dislikePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	actualScore := res.NbLikes - res.NbDisLikes
-
-	m.node.InitReputationCheck("", actualScore-1)
+	m.node.InitReputationCheck(res.LikerID, "-1", res.MsgSenderID, res.MessID, res.Score)
 
 }

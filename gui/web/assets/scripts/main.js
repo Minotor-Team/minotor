@@ -203,16 +203,17 @@ class Messaging extends BaseElement {
 class Reputation extends BaseElement {
 
     // reputation 
-    async updateMsgReputation(isLike, msgID, destination) {
+    async updateMsgReputation(isLike, msgID, msgSenderID, likerID, score) {
         const proxyAddressElement = document.querySelector('td[data-peerinfo-target="peerAddr"]');
         const proxyAddressText = proxyAddressElement.textContent;
         const typeMsg = (isLike) ? "like" : "dislike";
         const addr = proxyAddressText + "/messaging/" + typeMsg;
 
         const msg = {
-            "userID": "JULES",
-            "nbLikes": 1234,
-            "nbDisLikes": -182,
+            "likerID": likerID,
+            "msgSenderID": msgSenderID,
+            "messID": msgID,
+            "score": score
         };
 
         const fetchArgs = {
@@ -491,9 +492,10 @@ class Packets extends BaseElement {
 
             // ------------ end server ------------ 
 
-            function showLikes(nbLikes, nbDisLikes, likeValueID, dislikeValueID) {
+            function showLikes(nbLikes, nbDisLikes, likeValueID, dislikeValueID, scoreID) {
                 document.getElementById(likeValueID).innerText = nbLikes;
                 document.getElementById(dislikeValueID).innerText = nbDisLikes;
+                document.getElementById(scoreID).innerText = nbLikes - nbDisLikes;
             }
             function handleLikeClick() {
                 const likeElem = document.getElementById('val' + likeButt.id)
@@ -505,13 +507,15 @@ class Packets extends BaseElement {
                 const currDisLikesNb = document.getElementById('val' + dislikeButtID).innerText
                 const likeDislikes = Array.of(currLikesNb, currDisLikesNb, 'val' + likeButt.id, 'val' + dislikeButtID);
                 // ws.send(JSON.stringify(likeDislikes));
-                showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3]);
+                const scoreID = 'score' + el.id;
+                showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3], scoreID);
                 likeButt.removeEventListener('click', handleLikeClick);
 
                 // send Like Msg to container id (IP of the node who created the message)
                 // use the like button id to identify the message ID 
                 const reputation = new Reputation();
-                reputation.updateMsgReputation(true, el.id, container.id);
+                const likerIP = document.querySelector('td[data-peerinfo-target="socketAddr"]').textContent.slice(6);
+                reputation.updateMsgReputation(true, el.id, container.id, likerIP, document.getElementById(scoreID).innerText);
 
             }
             function handleDisLikeClick() {
@@ -524,12 +528,14 @@ class Packets extends BaseElement {
                 const currLikesNb = document.getElementById('val' + likeButtID).innerText
                 const likeDislikes = Array.of(currLikesNb, currDisLikesNb, 'val' + likeButtID, 'val' + dislikeButt.id);
                 // ws.send(JSON.stringify(likeDislikes));
-                showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3]);
+                const scoreID = 'score' + el.id;
+                showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3], scoreID);
                 dislikeButt.removeEventListener('click', handleDisLikeClick);
 
                 // send DisLike Msg to container id (IP of the node who created the message)
                 const reputation = new Reputation();
-                reputation.updateMsgReputation(false, el.id, container.id);
+                const likerIP = document.querySelector('td[data-peerinfo-target="socketAddr"]').textContent.slice(6);
+                reputation.updateMsgReputation(false, el.id, container.id, likerIP, document.getElementById(scoreID).innerText);
 
             }
 
@@ -566,6 +572,7 @@ class Packets extends BaseElement {
             dislikeImg.style.width = size;
             dislikeImg.src = './icons8-broken-heart-96.png';
             dislikeButt.appendChild(dislikeImg);
+            dislikeButt.style.marginLeft = '15px';
 
             const likeValue = document.createElement('span');
             likeValue.id = 'val0' + nbMsg.toString();
@@ -574,10 +581,15 @@ class Packets extends BaseElement {
             const dislikeValue = document.createElement('span');
             dislikeValue.id = 'val1' + nbMsg.toString();
 
-            container.appendChild(likeButt)
-            container.appendChild(likeValue)
-            container.appendChild(dislikeButt)
-            container.appendChild(dislikeValue)
+            el.id = pkt.Header.Timestamp;
+            const score = document.createElement('span');
+            score.id = 'score' + el.id;
+
+            container.appendChild(likeButt);
+            container.appendChild(likeValue);
+            container.appendChild(score);
+            container.appendChild(dislikeButt);
+            container.appendChild(dislikeValue);
 
             // note that this is not secure and prone to XSS attack.
             // displays only the last 5 digits of the IP address for better readability.
@@ -585,11 +597,10 @@ class Packets extends BaseElement {
             <span class="ip-addr"> ${pkt.Header.Source.slice(-5)} </span> at ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</p></div>`;
 
             el.appendChild(container);
-            el.id = pkt.Header.Timestamp;
             this.messagingController.addMsg(el);
             nbMsg++;
             // make the container (message) belongs to the node sending the message 
-            // using the id of the pkt source 
+            // using the ip of the pkt source 
             container.id = pkt.Header.Source;
         }
 

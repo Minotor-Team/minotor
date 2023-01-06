@@ -1,5 +1,5 @@
 package peer
 
 type Reputation interface {
-	InitReputationCheck(userID string, reputScore int64) error
+	InitReputationCheck(likerID string, value string, msgSender string, msgID string, score string) error
 }
