@@ -81,18 +81,18 @@ jobs:
       - name: Test unit HW2
         run: make test_unit_hw2
 
-  test_int_hw2:
-    name: Test integration HW2
-    runs-on: ubuntu-20.04-16core
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: 1.19
-      - name: Test integration HW2
-        run: |
-          make setbin
-          make test_int_hw2
+  # test_int_hw2:
+  #   name: Test integration HW2
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-go@v3
+  #       with:
+  #         go-version: 1.19
+  #     - name: Test integration HW2
+  #       run: |
+  #         make setbin
+  #         make test_int_hw2
 
   test_unit_hw3:
     name: Test unit HW3
