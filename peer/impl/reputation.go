@@ -1,8 +1,6 @@
 package impl
 
 import (
-	"fmt"
-
 	"go.dedis.ch/cs438/types"
 	"golang.org/x/xerrors"
 )
@@ -15,24 +13,53 @@ func (n *node) InitReputationCheck(likerID string, value string, msgSender strin
 	if value != "+1" && value != "-1" {
 		return xerrors.Errorf("Wrong value, should be either +1 or -1 : %v", value)
 	}
-	fmt.Println("Before : ", n.conf.Storage.GetReputationStore().Get(likerID+","+msgID))
-	fmt.Println("Before : ", n.conf.Storage.GetReputationStore().Len())
-	err := n.Consensus(likerID+","+msgID, value, types.Reputation)
-	fmt.Println("Before : ", n.conf.Storage.GetReputationStore().Len())
-	fmt.Println("After : ", n.conf.Storage.GetReputationStore().Get(likerID+","+msgID))
+	return nil
+}
 
+func (n *node) Like(likerID string, value string, msgSender string, msgID string, score string) error {
+	msg := createLikeMsg(msgSender, msgID, score)
+	err := n.BroadcastLike(msg)
+	if err != nil {
+		return err
+	}
+	handler := n.reputationHandler
+}
+
+func (n *node) Dislike(likerID string, value string, msgSender string, msgID string, score string) error {
+	msg := createDisLikeMsg(msgSender, msgID, score)
+	err := n.BroadcastDisLike(msg)
+}
+
+func (n *node) BroadcastLike(msg *types.LikeMessage) error {
+	msgMarsh, err := n.reg.MarshalMessage(msg)
+	if err != nil {
+		return err
+	}
+
+	// broadcast accept message
+	err = n.Broadcast(msgMarsh)
 	return err
 }
 
-func createLikeMsg(msgSender string, msgID string, score string) types.LikeMessage {
-	return types.LikeMessage{
+func (n *node) BroadcastDisLike(msg *types.DislikeMessage) error {
+	msgMarsh, err := n.reg.MarshalMessage(msg)
+	if err != nil {
+		return err
+	}
+
+	// broadcast accept message
+	err = n.Broadcast(msgMarsh)
+	return err
+}
+func createLikeMsg(msgSender string, msgID string, score string) *types.LikeMessage {
+	return &types.LikeMessage{
 		MsgSenderID: msgSender,
 		MsgID:       msgID,
 		Score:       score,
 	}
 }
-func createDisLikeMsg(msgSender string, msgID string, score string) types.DislikeMessage {
-	return types.DislikeMessage{
+func createDisLikeMsg(msgSender string, msgID string, score string) *types.DislikeMessage {
+	return &types.DislikeMessage{
 		MsgSenderID: msgSender,
 		MsgID:       msgID,
 		Score:       score,

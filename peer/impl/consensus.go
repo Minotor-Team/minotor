@@ -1,7 +1,6 @@
 package impl
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/rs/xid"
@@ -29,8 +28,6 @@ func (n *node) Consensus(name string, mh string, tp types.PaxosType) error {
 	case types.Reputation:
 		store = n.conf.Storage.GetReputationStore()
 		storedName := store.Get(name)
-		fmt.Println("AAA")
-		fmt.Println(storedName)
 		if storedName != nil {
 			return xerrors.Errorf("already existing name : %v", name)
 		}
