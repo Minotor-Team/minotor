@@ -31,6 +31,7 @@ func NewPeer(conf peer.Configuration) peer.Peer {
 		identityHandler:   newPaxosHandler(conf),
 		reputationHandler: newPaxosHandler(conf),
 		messageReputation: newMsgReputation(),
+		messagesScore:     newMsgScore(),
 	}
 
 	myAddr := node.soc.GetAddress()
@@ -78,6 +79,7 @@ type node struct {
 	identityHandler   *paxosHandler
 	reputationHandler *paxosHandler
 	messageReputation *messageReputation
+	messagesScore     *messagesScore
 }
 
 type void struct{}

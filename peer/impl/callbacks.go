@@ -3,7 +3,6 @@ package impl
 import (
 	"math/rand"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -15,32 +14,32 @@ import (
 
 // reputation
 func (n *node) ExecLikeMessage(msg types.Message, pkt transport.Packet) error {
-	likeMsg, conv := msg.(*types.LikeMessage)
-	if !conv {
-		return xerrors.Errorf("wrong type: %T", msg)
-	}
+	// likeMsg, conv := msg.(*types.LikeMessage)
+	// if !conv {
+	// 	return xerrors.Errorf("wrong type: %T", msg)
+	// }
 
-	msgID, err := strconv.ParseInt(likeMsg.Message, 10, 64)
-	if err != nil {
-		return xerrors.Errorf("Error during conversion")
-	}
+	// msgID, err := strconv.ParseInt(likeMsg.Message, 10, 64)
+	// if err != nil {
+	// 	return xerrors.Errorf("Error during conversion")
+	// }
 
-	n.messageReputation.updateMessageReputation(msgID, true)
+	// n.messageReputation.updateMessageReputation(msgID, true)
 
 	return nil
 }
 
 func (n *node) ExecDislikeMessage(msg types.Message, pkt transport.Packet) error {
-	dislikeMsg, conv := msg.(*types.DislikeMessage)
-	if !conv {
-		return xerrors.Errorf("wrong type: %T", msg)
-	}
-	msgID, err := strconv.ParseInt(dislikeMsg.Message, 10, 64)
-	if err != nil {
-		return xerrors.Errorf("Error during conversion")
-	}
+	// dislikeMsg, conv := msg.(*types.DislikeMessage)
+	// if !conv {
+	// 	return xerrors.Errorf("wrong type: %T", msg)
+	// }
+	// msgID, err := strconv.ParseInt(dislikeMsg.Message, 10, 64)
+	// if err != nil {
+	// 	return xerrors.Errorf("Error during conversion")
+	// }
 
-	n.messageReputation.updateMessageReputation(msgID, false)
+	// n.messageReputation.updateMessageReputation(msgID, false)
 
 	return nil
 }

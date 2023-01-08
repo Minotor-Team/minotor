@@ -21,7 +21,7 @@ func (LikeMessage) Name() string {
 
 // String implements types.Message.
 func (c LikeMessage) String() string {
-	return fmt.Sprintf("<%s>", c.Message)
+	return fmt.Sprintf("<%s>", c.Score)
 }
 
 // HTML implements types.Message.
@@ -46,7 +46,7 @@ func (DislikeMessage) Name() string {
 
 // String implements types.Message.
 func (c DislikeMessage) String() string {
-	return fmt.Sprintf("<%s>", c.Message)
+	return fmt.Sprintf("<%s>", c.Score)
 }
 
 // HTML implements types.Message.

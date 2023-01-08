@@ -1,6 +1,8 @@
 package impl
 
 import (
+	"fmt"
+
 	"go.dedis.ch/cs438/types"
 	"golang.org/x/xerrors"
 )
@@ -13,36 +15,13 @@ func (n *node) InitReputationCheck(likerID string, value string, msgSender strin
 	if value != "+1" && value != "-1" {
 		return xerrors.Errorf("Wrong value, should be either +1 or -1 : %v", value)
 	}
-	err := n.Consensus(likerID, value, types.Reputation)
-	// consensus failed
-	if err != nil {
-		return err
-	}
+	fmt.Println("Before : ", n.conf.Storage.GetReputationStore().Get(likerID+","+msgID))
+	fmt.Println("Before : ", n.conf.Storage.GetReputationStore().Len())
+	err := n.Consensus(likerID+","+msgID, value, types.Reputation)
+	fmt.Println("Before : ", n.conf.Storage.GetReputationStore().Len())
+	fmt.Println("After : ", n.conf.Storage.GetReputationStore().Get(likerID+","+msgID))
 
-	// consensus succeeded : tell everyone to update its table with the new score
-	// broadcast a like or dislike message
-	switch value {
-	case "+1":
-		// create a like message and broadcast it
-		likeMsg := createLikeMsg(msgSender, msgID, score)
-		likeMsgMarsh, err := n.reg.MarshalMessage(likeMsg)
-		if err != nil {
-			return err
-		}
-		err = n.Broadcast(likeMsgMarsh)
-		return err
-	case "-1":
-		// create a dislike message and broadcast it
-		likeMsg := createDisLikeMsg(msgSender, msgID, score)
-		likeMsgMarsh, err := n.reg.MarshalMessage(likeMsg)
-		if err != nil {
-			return err
-		}
-		err = n.Broadcast(likeMsgMarsh)
-		return err
-
-	}
-	return nil
+	return err
 }
 
 func createLikeMsg(msgSender string, msgID string, score string) types.LikeMessage {

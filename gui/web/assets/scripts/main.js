@@ -509,7 +509,7 @@ class Packets extends BaseElement {
                 // ws.send(JSON.stringify(likeDislikes));
                 const scoreID = 'score' + el.id;
                 showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3], scoreID);
-                likeButt.removeEventListener('click', handleLikeClick);
+                // likeButt.removeEventListener('click', handleLikeClick);
 
                 // send Like Msg to container id (IP of the node who created the message)
                 // use the like button id to identify the message ID 
@@ -530,7 +530,7 @@ class Packets extends BaseElement {
                 // ws.send(JSON.stringify(likeDislikes));
                 const scoreID = 'score' + el.id;
                 showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3], scoreID);
-                dislikeButt.removeEventListener('click', handleDisLikeClick);
+                // dislikeButt.removeEventListener('click', handleDisLikeClick);
 
                 // send DisLike Msg to container id (IP of the node who created the message)
                 const reputation = new Reputation();
@@ -551,13 +551,13 @@ class Packets extends BaseElement {
             likeButt.style.display = 'flex';  // set the display property to flex
             likeButt.style.alignItems = 'center';  // center the items vertically
             likeButt.style.justifyContent = 'center';  // center the items horizontally
-            likeButt.style.value
             likeButt.addEventListener('click', handleLikeClick);
             const likeImg = document.createElement('img');
             likeImg.src = './icons8-red-heart-96.png';
             likeImg.style.height = size;
             likeImg.style.width = size;
             likeButt.appendChild(likeImg);
+            likeButt.style.marginRight = '15px';
 
             const dislikeButt = document.createElement('button');
             dislikeButt.id = '1' + nbMsg.toString();
@@ -577,9 +577,12 @@ class Packets extends BaseElement {
             const likeValue = document.createElement('span');
             likeValue.id = 'val0' + nbMsg.toString();
             likeValue.style.marginRight = '15px';
+            likeValue.style.display = 'none';
+
 
             const dislikeValue = document.createElement('span');
             dislikeValue.id = 'val1' + nbMsg.toString();
+            dislikeValue.style.display = 'none';
 
             el.id = pkt.Header.Timestamp;
             const score = document.createElement('span');
