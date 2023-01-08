@@ -14,6 +14,7 @@ type Peer interface {
 	Service
 	Messaging
 	DataSharing
+	User
 }
 
 type RoutePeer interface {
