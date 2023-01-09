@@ -596,12 +596,6 @@ func (pH *paxosLikeHandler) respondToProposeLike(msg types.PaxosProposeLike, n *
 		return nil
 	}
 
-	// check step
-	if pH.step != msg.Step {
-		fmt.Println("BBB")
-		return nil
-	}
-
 	// set parameters
 	pH.running = running
 
@@ -633,10 +627,6 @@ func (pH *paxosLikeHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *nod
 	pH.Lock()
 	defer pH.Unlock()
 
-	// check step
-	if pH.step != msg.Step {
-		return nil
-	}
 	fmt.Println("Answer accept")
 
 	// set parameters
@@ -655,7 +645,6 @@ func (pH *paxosLikeHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *nod
 		}
 		store := n.conf.Storage.GetReputationStore()
 		store.Set(msg.Value.Name, []byte(strconv.Itoa(msg.Value.Value)))
-		pH.step++
 
 		fmt.Println("YES")
 		fmt.Println(n.messagesScore.messageScore)

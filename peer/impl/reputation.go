@@ -15,11 +15,12 @@ import (
 // (it would be the total of its messages). Moreover he has the ability to like or dislike messages of other peers
 // and change their corresponding reputation score.
 
-func (n *node) InitReputationCheck(likerID string, value int, msgSender string, msgID string, score string) error {
+func (n *node) InitReputationCheck(likerID string, value int, msgSender string, msgID string, score string) (map[string]int, error) {
 	if value != 1 && value != -1 {
-		return xerrors.Errorf("Wrong value, should be either +1 or -1 : %v", value)
+		return nil, xerrors.Errorf("Wrong value, should be either +1 or -1 : %v", value)
 	}
-	return n.LikeConsensus(likerID, value, msgSender, msgID)
+	err := n.LikeConsensus(likerID, value, msgSender, msgID)
+	return n.messagesScore.messageScore, err
 }
 
 func (n *node) LikeConsensus(likerID string, value int, msgSender string, msgID string) error {
@@ -48,17 +49,6 @@ func (n *node) LikeConsensus(likerID string, value int, msgSender string, msgID 
 		return nil
 	}
 
-	// wait for paxos instance to finish
-	instanceRunning, instanceChannel := handler.initPaxosInstance()
-	for instanceRunning {
-		select {
-		case <-instanceChannel:
-			instanceRunning, instanceChannel = handler.initPaxosInstance()
-		case <-n.stopChannel:
-			return nil
-		}
-	}
-
 	// loop on the paxos instance until consensus is finished
 	startingStep := handler.getStep()
 	for {
@@ -69,6 +59,7 @@ func (n *node) LikeConsensus(likerID string, value int, msgSender string, msgID 
 			if string(storedValue) == strconv.Itoa(value) {
 				return nil
 			}
+			fmt.Println("RE like")
 			return n.LikeConsensus(likerID, value, msgSender, msgID)
 		}
 

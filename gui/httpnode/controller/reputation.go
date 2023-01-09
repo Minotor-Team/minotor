@@ -77,12 +77,13 @@ func (m messaging) likePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = m.node.InitReputationCheck(res.LikerID, 1, res.MsgSenderID, res.MessID, res.Score)
+	msgIDScore, err = m.node.InitReputationCheck(res.LikerID, 1, res.MsgSenderID, res.MessID, res.Score)
 	if err != nil {
 		http.Error(w, "failed to init reputation consensus: "+err.Error(),
 			http.StatusInternalServerError)
 		return
 	}
+	// TODO display the msg with their score
 }
 func (m messaging) dislikePost(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -104,11 +105,12 @@ func (m messaging) dislikePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = m.node.InitReputationCheck(res.LikerID, -1, res.MsgSenderID, res.MessID, res.Score)
+	msgIDScore, err = m.node.InitReputationCheck(res.LikerID, -1, res.MsgSenderID, res.MessID, res.Score)
 	if err != nil {
 		http.Error(w, "failed to init reputation consensus: "+err.Error(),
 			http.StatusInternalServerError)
 		return
 	}
+	// TODO display the msg with their score
 
 }
