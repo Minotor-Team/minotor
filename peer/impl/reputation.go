@@ -3,7 +3,6 @@ package impl
 import (
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"go.dedis.ch/cs438/storage"
@@ -77,10 +76,6 @@ func (n *node) LikeConsensus(likerID string, value int, msgSender string, msgID 
 }
 
 func (n *node) Phase2(value types.PaxosLike, name string, likeValue int, handler *paxosLikeHandler, tp types.PaxosType, msgSender string, store storage.Store) (bool, error) {
-	// retrieve arguments
-	likerMsgID := strings.Split(name, ",")
-	likerID := likerMsgID[0]
-	msgID := likerMsgID[1]
 	// broadcast propose message with given value
 	paxosProposeLike := handler.createProposeLike(value, tp)
 	valueChannel := handler.getValueChannel()
@@ -95,33 +90,24 @@ func (n *node) Phase2(value types.PaxosLike, name string, likeValue int, handler
 		return true, err
 	}
 
-	// create ticker with given interval
-	ticker := time.NewTicker(n.conf.PaxosProposerRetry)
+	// create timeout channel
+	// if timeout and the map is not updated you can considered the consensus wasnt reached, you can click again to retry
+	timeout := time.After(3 * time.Second)
+
+	// wait for either the value to be received or the timeout to occur
 	select {
-	// if value channel is trigger
 	case finalValue := <-valueChannel:
 		// if final value is ours, everything went well
+		fmt.Println("done")
 		if finalValue.Name == name && finalValue.Value == likeValue {
 			return true, nil
 		}
-		// else start again with tag function
-		return true, n.LikeConsensus(likerID, likeValue, msgSender, msgID)
-	// if ticker is triggered
-	case <-ticker.C:
-		// check anyway if final value is not nil (refer previous case)
-		finalValue := handler.getFinalValue()
-		if (finalValue != types.PaxosLike{}) {
-			if finalValue.Name == name && finalValue.Value == likeValue {
-				return true, nil
-			}
-			return true, n.LikeConsensus(likerID, likeValue, msgSender, msgID)
-		}
-		// increment paxos ID and restart loop
-		handler.nextID()
-	// if stop function is called, stop function
-	case <-n.stopChannel:
+	case <-timeout:
+		// timeout occurred
+		fmt.Println("timeout")
 		return true, nil
 	}
+
 	return false, nil
 }
 

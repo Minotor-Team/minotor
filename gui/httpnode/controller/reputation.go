@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -77,12 +78,14 @@ func (m messaging) likePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msgIDScore, err = m.node.InitReputationCheck(res.LikerID, 1, res.MsgSenderID, res.MessID, res.Score)
+	msgIDScore, err := m.node.InitReputationCheck(res.LikerID, 1, res.MsgSenderID, res.MessID, res.Score)
 	if err != nil {
 		http.Error(w, "failed to init reputation consensus: "+err.Error(),
 			http.StatusInternalServerError)
 		return
 	}
+	fmt.Println("map")
+	fmt.Println(msgIDScore)
 	// TODO display the msg with their score
 }
 func (m messaging) dislikePost(w http.ResponseWriter, r *http.Request) {
@@ -105,12 +108,15 @@ func (m messaging) dislikePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msgIDScore, err = m.node.InitReputationCheck(res.LikerID, -1, res.MsgSenderID, res.MessID, res.Score)
+	msgIDScore, err := m.node.InitReputationCheck(res.LikerID, -1, res.MsgSenderID, res.MessID, res.Score)
 	if err != nil {
 		http.Error(w, "failed to init reputation consensus: "+err.Error(),
 			http.StatusInternalServerError)
 		return
 	}
+	fmt.Println("map")
+	fmt.Println(msgIDScore)
+
 	// TODO display the msg with their score
 
 }
