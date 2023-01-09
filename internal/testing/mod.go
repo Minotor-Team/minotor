@@ -150,6 +150,8 @@ type configTemplate struct {
 	paxosThreshold     func(uint) int
 	paxosID            uint
 	paxosProposerRetry time.Duration
+
+	routeSeed int64
 }
 
 func newConfigTemplate() configTemplate {
@@ -184,11 +186,18 @@ func newConfigTemplate() configTemplate {
 		},
 		paxosID:            0,
 		paxosProposerRetry: time.Second * 5,
+		routeSeed:          0,
 	}
 }
 
 // Option is the type of option when creating a test node.
 type Option func(*configTemplate)
+
+func WithRouteSeed(seed int64) Option {
+	return func(ct *configTemplate) {
+		ct.routeSeed = seed
+	}
+}
 
 // WithAutostart sets the autostart option.
 func WithAutostart(autostart bool) Option {
@@ -296,6 +305,12 @@ func WithPaxosProposerRetry(d time.Duration) Option {
 // NewTestNode returns a new test node.
 func NewTestNode(t require.TestingT, f peer.Factory, trans transport.Transport,
 	addr string, opts ...Option) TestNode {
+	n, _ := NewTestNodeWithConfig(t, f, trans, addr, opts...)
+	return n
+}
+
+func NewTestNodeWithConfig(t require.TestingT, f peer.Factory, trans transport.Transport,
+	addr string, opts ...Option) (TestNode, peer.Configuration) {
 
 	template := newConfigTemplate()
 	for _, opt := range opts {
@@ -337,7 +352,7 @@ func NewTestNode(t require.TestingT, f peer.Factory, trans transport.Transport,
 		Peer:   node,
 		config: config,
 		socket: socket,
-	}
+	}, config
 }
 
 // TestNode defines a test node. It overides peer.Peer with additional functions

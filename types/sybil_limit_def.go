@@ -1,5 +1,11 @@
 package types
 
+import (
+	"strings"
+
+	"golang.org/x/xerrors"
+)
+
 type RouteMessage struct {
 	// Keeps track of the length of the route
 	Length uint
@@ -18,4 +24,37 @@ type RouteMessage struct {
 
 	// A flag to indicate if the last hop should register the data or not.
 	MustRegister bool
+}
+
+type SuspectRouteProtocolDone struct {
+	Tails map[uint]Edge
+}
+
+const EdgeSep string = "->"
+
+type Edge struct {
+	From string
+	To   string
+}
+
+// Two edges intersects if they correspond to the same undirected edge in the graph
+func (e *Edge) Intersects(that Edge) bool {
+	return (e.From == that.From && e.To == that.To) || (e.From == that.To && e.To == that.From)
+}
+
+func (e *Edge) String() string {
+	return strings.Join([]string{e.From, e.To}, EdgeSep)
+}
+
+func (e *Edge) Reverse() Edge {
+	return Edge{From: e.To, To: e.From}
+}
+
+func ParseEdge(str string) (Edge, error) {
+	nodes := strings.Split(str, EdgeSep)
+	if len(nodes) != 2 {
+		return Edge{}, xerrors.Errorf("ToEdge: %s is not an edge", str)
+	}
+
+	return Edge{From: nodes[0], To: nodes[1]}, nil
 }

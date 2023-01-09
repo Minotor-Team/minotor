@@ -88,6 +88,23 @@ type Configuration struct {
 	// retries to send a prepare when it doesn't get enough promises or accepts.
 	// Default: 5s.
 	PaxosProposerRetry time.Duration
+
+	// SybilLimit related parameters
+
+	// The seed for the route permutations generation.
+	RouteSeed int64
+
+	// The length of the route for the route protocol. It corresponds to the mixing time
+	// of the social network.
+	// Corresponds to the parameter w in the paper.
+	RouteLength uint
+
+	// The number of routes to generate for each peer.
+	// Corresponds to the parameter r in the paper.
+	NumberRoutes uint
+
+	// The timeout for the route protocol.
+	RouteTimeout time.Duration
 }
 
 // Backoff describes parameters for a backoff algorithm. The initial time must

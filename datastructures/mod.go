@@ -20,6 +20,14 @@ func Map[T any, S any](slice []T, mapping func(t T) S) []S {
 	return res
 }
 
+func MapCopy[T comparable, S any](m map[T]S) map[T]S {
+	res := make(map[T]S)
+	for k, v := range m {
+		res[k] = v
+	}
+	return res
+}
+
 // Set structures. Wraps map[T]struct{}
 type Set[T comparable] map[T]struct{}
 
