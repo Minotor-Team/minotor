@@ -70,8 +70,8 @@ func NewHonestTestNode(t require.TestingT, trans transport.Transport,
 	}
 }
 
-func (m *HonestTestNode) GetAdress() string {
-	return m.socket.GetAddress()
+func (t *HonestTestNode) GetAdress() string {
+	return t.socket.GetAddress()
 }
 
 // GetIns returns all the messages received so far.
@@ -118,25 +118,25 @@ func NewMaliciousTestNode(t require.TestingT, trans transport.Transport,
 	}
 }
 
-func (t *MaliciousTestNode) Stop() error {
+func (n *MaliciousTestNode) Stop() error {
 	var err error
-	for _, sybil := range t.sybils {
+	for _, sybil := range n.sybils {
 		err = sybil.Stop()
 		if err != nil {
 			return err
 		}
 	}
-	return t.MaliciousNode.Stop()
+	return n.MaliciousNode.Stop()
 }
 
 // GetIns returns all the messages received so far.
-func (t MaliciousTestNode) GetIns() []transport.Packet {
-	return t.socket.GetIns()
+func (n MaliciousTestNode) GetIns() []transport.Packet {
+	return n.socket.GetIns()
 }
 
 // GetOuts returns all the messages sent so far.
-func (t MaliciousTestNode) GetOuts() []transport.Packet {
-	return t.socket.GetOuts()
+func (n MaliciousTestNode) GetOuts() []transport.Packet {
+	return n.socket.GetOuts()
 }
 
 // Creates sybil nodes for this malicious nodes. Sybil nodes are peers with their parent.

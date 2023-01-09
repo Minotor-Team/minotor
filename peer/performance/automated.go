@@ -11,8 +11,8 @@ import (
 	"golang.org/x/xerrors"
 )
 
-var LIKE bool = true
-var DISLIKE bool = false
+var LIKE = true
+var DISLIKE = false
 
 type AutomatedNode interface {
 	GetReactions() map[string]map[string]bool
