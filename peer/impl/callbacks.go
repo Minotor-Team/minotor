@@ -413,7 +413,7 @@ func (n *node) ExecPaxosPrepareMessage(msg types.Message, pkt transport.Packet) 
 	}
 
 	// process prepare message and create promise message
-	promise := handler.respondToPrepareMsg(*paxosPrepareMsg)
+	promise := handler.respondToPrepareMsg(*paxosPrepareMsg, n.conf)
 	if promise == nil {
 		return nil
 	}

@@ -17,6 +17,7 @@ type PaxosPrepareMessage struct {
 	ID   uint
 	// Source is the address of the peer that sends the prepare
 	Source string
+	Value  *PaxosValue
 }
 
 // PaxosPromiseMessage defines a promise message in Paxos

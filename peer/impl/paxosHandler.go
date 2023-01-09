@@ -156,6 +156,7 @@ func (pH *paxosHandler) createPrepareMessage(source string, value types.PaxosVal
 		Step:   pH.step,
 		ID:     pH.paxosID,
 		Source: source,
+		Value:  &value,
 	}
 
 	// init parameters with created value, phase 1 and 0 promises
@@ -182,7 +183,7 @@ func (pH *paxosHandler) createProposeMessage(value types.PaxosValue, tp types.Pa
 }
 
 // responds to prepare message by sending promise message if conditions are fulfilled
-func (pH *paxosHandler) respondToPrepareMsg(msg types.PaxosPrepareMessage) *types.PaxosPromiseMessage {
+func (pH *paxosHandler) respondToPrepareMsg(msg types.PaxosPrepareMessage, conf peer.Configuration) *types.PaxosPromiseMessage {
 	pH.Lock()
 	defer pH.Unlock()
 
@@ -202,8 +203,18 @@ func (pH *paxosHandler) respondToPrepareMsg(msg types.PaxosPrepareMessage) *type
 
 	// create promise message
 	var acceptedValue *types.PaxosValue
-	if (pH.acceptedValue != types.PaxosValue{}) {
-		acceptedValue = &pH.acceptedValue
+
+	switch msg.Type {
+	case types.Tag:
+		if (pH.acceptedValue != types.PaxosValue{}) {
+			acceptedValue = &pH.acceptedValue
+		}
+	case types.Identity:
+		connected := conf.Storage.GetIdentityStore().Get(msg.Value.Filename)
+		if connected != nil {
+			return nil
+		}
+		acceptedValue = msg.Value
 	}
 
 	paxosPromiseMsg := types.PaxosPromiseMessage{
