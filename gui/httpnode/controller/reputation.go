@@ -88,6 +88,7 @@ func (m messaging) likePost(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(msgIDScore)
 	// TODO display the msg with their score
 }
+
 func (m messaging) dislikePost(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "*")

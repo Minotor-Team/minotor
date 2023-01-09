@@ -91,7 +91,7 @@ type PaxosValue struct {
 }
 
 type PaxosLike struct {
-	// ["likerID" + "," + "msgID"]
+	// ["likerID" + "," + "msgID" + "," + "Value"]
 	Name string
 	// value is 1 for like -1 for dislike
 	Value int

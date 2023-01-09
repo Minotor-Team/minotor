@@ -97,8 +97,6 @@ func (n *node) Download(metahash string) ([]byte, error) {
 
 // maps name to given metahash
 func (n *node) Tag(name string, mh string) error {
-	fmt.Println("PEERS ")
-	fmt.Println(n.conf.TotalPeers)
 	return n.Consensus(name, mh, types.Tag)
 }
 

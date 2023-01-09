@@ -229,6 +229,23 @@ class Reputation extends BaseElement {
         }
     }
 
+    async update(elID) {
+        const proxyAddressElement = document.querySelector('td[data-peerinfo-target="peerAddr"]');
+        const proxyAddressText = proxyAddressElement.textContent;
+        const addr = proxyAddressText + "/messaging/score";
+
+        try {
+            const resp = await this.fetch(addr);
+            const data = await resp.json();
+
+            for (const score of Object.entries(data)) {
+                document.getElementById("score" + elID).innerText = score;
+            }
+
+        } catch (e) {
+
+        }
+    }
 }
 
 class Unicast extends BaseElement {
@@ -508,7 +525,7 @@ class Packets extends BaseElement {
                 const likeDislikes = Array.of(currLikesNb, currDisLikesNb, 'val' + likeButt.id, 'val' + dislikeButtID);
                 // ws.send(JSON.stringify(likeDislikes));
                 const scoreID = 'score' + el.id;
-                showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3], scoreID);
+                // showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3], scoreID);
                 // likeButt.removeEventListener('click', handleLikeClick);
 
                 // send Like Msg to container id (IP of the node who created the message)
@@ -529,7 +546,7 @@ class Packets extends BaseElement {
                 const likeDislikes = Array.of(currLikesNb, currDisLikesNb, 'val' + likeButtID, 'val' + dislikeButt.id);
                 // ws.send(JSON.stringify(likeDislikes));
                 const scoreID = 'score' + el.id;
-                showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3], scoreID);
+                // showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3], scoreID);
                 // dislikeButt.removeEventListener('click', handleDisLikeClick);
 
                 // send DisLike Msg to container id (IP of the node who created the message)

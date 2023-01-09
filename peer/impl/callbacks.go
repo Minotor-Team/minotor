@@ -1,7 +1,6 @@
 package impl
 
 import (
-	"fmt"
 	"math/rand"
 	"regexp"
 	"strconv"
@@ -567,8 +566,6 @@ func (n *node) ExecProposeLike(msg types.Message, pkt transport.Packet) error {
 		return xerrors.Errorf("wrong type: %T", msg)
 	}
 
-	fmt.Println("Receive propose")
-
 	// process accept message and create TLC message
 	acceptLike := n.reputationHandler.respondToProposeLike(*paxosProposeLike, n)
 	if acceptLike == nil {
@@ -582,7 +579,6 @@ func (n *node) ExecProposeLike(msg types.Message, pkt transport.Packet) error {
 
 	// broadcast accept message
 	err = n.Broadcast(transportAcceptLike)
-	fmt.Println("Send Accept")
 	return err
 }
 
@@ -590,12 +586,9 @@ func (pH *paxosLikeHandler) respondToProposeLike(msg types.PaxosProposeLike, n *
 	pH.Lock()
 	defer pH.Unlock()
 
-	fmt.Println("Response propose")
-
-	storedValue := n.conf.Storage.GetReputationStore().Get(msg.Value.Name + "," + strconv.Itoa(msg.Value.Value))
+	storedValue := n.conf.Storage.GetReputationStore().Get(msg.Value.Name)
 	// The person already liked
 	if string(storedValue) == strconv.Itoa(msg.Value.Value) {
-		fmt.Println("AAA")
 		return nil
 	}
 
@@ -619,7 +612,6 @@ func (n *node) ExecAcceptLike(msg types.Message, pkt transport.Packet) error {
 	if !conv {
 		return xerrors.Errorf("wrong type: %T", msg)
 	}
-	fmt.Println("Receive accept")
 
 	// process accept message and create TLC message
 	err := n.reputationHandler.respondToAccepLike(*paxosAcceptMsg, n)
@@ -630,8 +622,6 @@ func (pH *paxosLikeHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *nod
 	pH.Lock()
 	defer pH.Unlock()
 
-	fmt.Println("Answer accept")
-
 	// set parameters
 	pH.running = running
 
@@ -639,10 +629,9 @@ func (pH *paxosLikeHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *nod
 
 	// if threshold has been reached, consensus has been reached
 	if pH.acceptedValues[msg.Value] >= pH.threshold {
+		pH.finalValue = msg.Value
 		likerMsgID := strings.Split(msg.Value.Name, ",")
 		msgID := likerMsgID[1]
-		fmt.Println("STEP ")
-		fmt.Println(msg.Step)
 		if !pH.stepUpdate.stepUpdate[msg.Step] {
 			pH.stepUpdate.setStepUpdate(msg.Step, true)
 			if msg.Value.Value == 1 {
@@ -652,12 +641,8 @@ func (pH *paxosLikeHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *nod
 			}
 			store := n.conf.Storage.GetReputationStore()
 			stringVal := strconv.Itoa(msg.Value.Value)
-			store.Set(msg.Value.Name+","+stringVal, []byte(stringVal))
+			store.Set(msg.Value.Name, []byte(stringVal))
 
-			fmt.Println("YES")
-			fmt.Println(n.messagesScore.messageScore)
-			fmt.Println(store.Len())
-			fmt.Println(store.Get(msg.Value.Name))
 			pH.step++
 
 			pH.clearInstance(n.conf)

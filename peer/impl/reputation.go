@@ -29,14 +29,11 @@ func (n *node) LikeConsensus(likerID string, value int, msgSender string, msgID 
 	} else {
 		isaLike = false
 	}
-	fmt.Println("Start consensus ")
-	name := likerID + "," + msgID
 	tp := types.Reputation
+	name := likerID + "," + msgID + "," + strconv.Itoa(value)
 	store := n.conf.Storage.GetReputationStore()
-	storedValue := store.Get(name + "," + strconv.Itoa(value))
 
-	fmt.Println(string(storedValue))
-	fmt.Println(strconv.Itoa(value))
+	storedValue := store.Get(name)
 	// if the liker already liked (dislike) the msg ID, dont accept.
 	if string(storedValue) == strconv.Itoa(value) {
 		fmt.Println("Already liked ! ")
@@ -61,7 +58,6 @@ func (n *node) LikeConsensus(likerID string, value int, msgSender string, msgID 
 			if string(storedValue) == strconv.Itoa(value) {
 				return nil
 			}
-			fmt.Println("RE like")
 			return n.LikeConsensus(likerID, value, msgSender, msgID)
 		}
 
@@ -98,7 +94,6 @@ func (n *node) Phase2(value types.PaxosLike, name string, likeValue int, handler
 	select {
 	case finalValue := <-valueChannel:
 		// if final value is ours, everything went well
-		fmt.Println("done")
 		if finalValue.Name == name && finalValue.Value == likeValue {
 			return true, nil
 		}
