@@ -93,10 +93,7 @@ func (n *node) Phase2(value types.PaxosLike, name string, likeValue int, handler
 		return true, err
 	}
 
-	// create timeout channel
-	// if timeout and the map is not updated you can considered the consensus wasnt reached, you can click again to retry
-	timeout := time.After(2 * time.Second)
-
+	ticker := time.NewTicker(n.conf.PaxosProposerRetry)
 	// wait for either the value to be received or the timeout to occur
 	select {
 	case finalValue := <-valueChannel:
@@ -105,7 +102,7 @@ func (n *node) Phase2(value types.PaxosLike, name string, likeValue int, handler
 		if finalValue.Name == name && finalValue.Value == likeValue {
 			return true, nil
 		}
-	case <-timeout:
+	case <-ticker.C:
 		// timeout occurred
 		fmt.Println("timeout")
 		return true, nil

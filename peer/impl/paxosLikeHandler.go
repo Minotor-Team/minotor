@@ -114,3 +114,25 @@ func (pH *paxosLikeHandler) getValueChannel() chan types.PaxosLike {
 
 	return pH.valueChannel
 }
+
+func (pH *paxosLikeHandler) clearInstance(conf peer.Configuration) {
+	pH.running = idle
+	pH.maxID = initValue
+	pH.bestID = initValue
+	pH.acceptedID = initValue
+	pH.promises = initValue
+	pH.currentPhase = paxosPhase1
+	pH.paxosID = conf.PaxosID
+	pH.nPeers = conf.TotalPeers
+	pH.threshold = uint(conf.PaxosThreshold(conf.TotalPeers))
+	pH.bestValue = types.PaxosLike{}
+	pH.acceptedValue = types.PaxosLike{}
+	pH.proposedValue = types.PaxosLike{}
+	pH.acceptedValues = make(map[types.PaxosLike]uint)
+	pH.promiseChannel = make(chan types.PaxosLike, 1)
+	pH.valueChannel <- pH.finalValue
+	close(pH.valueChannel)
+	pH.valueChannel = make(chan types.PaxosLike, 1)
+	close(pH.instanceChannel)
+	pH.instanceChannel = make(chan struct{})
+}

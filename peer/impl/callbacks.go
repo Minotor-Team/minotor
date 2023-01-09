@@ -659,6 +659,8 @@ func (pH *paxosLikeHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *nod
 			fmt.Println(store.Len())
 			fmt.Println(store.Get(msg.Value.Name))
 			pH.step++
+
+			pH.clearInstance(n.conf)
 		}
 	}
 
