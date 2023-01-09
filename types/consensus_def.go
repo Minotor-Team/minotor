@@ -67,7 +67,7 @@ type PaxosAcceptLike struct {
 	Type  PaxosType
 	Step  uint
 	ID    uint
-	Value PaxosValue
+	Value PaxosLike
 }
 
 // TLCMessage defines a TLC message
@@ -91,6 +91,7 @@ type PaxosValue struct {
 }
 
 type PaxosLike struct {
+	// ["likerID" + "," + "msgID"]
 	Name string
 	// value is 1 for like -1 for dislike
 	Value int

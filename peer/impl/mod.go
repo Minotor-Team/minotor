@@ -29,7 +29,7 @@ func NewPeer(conf peer.Configuration) peer.Peer {
 		searchsHandler:    newChannelsHandler(),
 		tagHandler:        newPaxosHandler(conf),
 		identityHandler:   newPaxosHandler(conf),
-		reputationHandler: newPaxosHandler(conf),
+		reputationHandler: newPaxosLikeHandler(conf),
 		messagesScore:     newMsgScore(),
 	}
 
@@ -79,7 +79,7 @@ type node struct {
 	searchsHandler    *channelsHandler
 	tagHandler        *paxosHandler
 	identityHandler   *paxosHandler
-	reputationHandler *paxosHandler
+	reputationHandler *paxosLikeHandler
 	messagesScore     *messagesScore
 }
 

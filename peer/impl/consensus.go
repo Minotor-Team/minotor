@@ -25,13 +25,6 @@ func (n *node) Consensus(name string, mh string, tp types.PaxosType) error {
 	case types.Identity:
 		store = n.conf.Storage.GetIdentityStore()
 		handler = n.identityHandler
-	case types.Reputation:
-		store = n.conf.Storage.GetReputationStore()
-		storedName := store.Get(name)
-		if storedName != nil {
-			return xerrors.Errorf("already existing name : %v", name)
-		}
-		handler = n.reputationHandler
 	default:
 		return xerrors.Errorf("invalid type : %v", tp)
 	}

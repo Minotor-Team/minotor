@@ -1,8 +1,10 @@
 package impl
 
 import (
+	"fmt"
 	"math/rand"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -565,8 +567,10 @@ func (n *node) ExecProposeLike(msg types.Message, pkt transport.Packet) error {
 		return xerrors.Errorf("wrong type: %T", msg)
 	}
 
+	fmt.Println("Receive propose")
+
 	// process accept message and create TLC message
-	acceptLike := n.reputationHandler.respondToProposeLike(*paxosProposeLike)
+	acceptLike := n.reputationHandler.respondToProposeLike(*paxosProposeLike, n)
 
 	transportAcceptLike, err := n.reg.MarshalMessage(acceptLike)
 	if err != nil {
@@ -575,37 +579,38 @@ func (n *node) ExecProposeLike(msg types.Message, pkt transport.Packet) error {
 
 	// broadcast accept message
 	err = n.Broadcast(transportAcceptLike)
+	fmt.Println("Send Accept")
 	return err
 }
 
-func (pH *paxosHandler) respondToProposeLike(msg types.PaxosProposeLike) *types.PaxosAcceptMessage {
+func (pH *paxosLikeHandler) respondToProposeLike(msg types.PaxosProposeLike, n *node) *types.PaxosAcceptLike {
 	pH.Lock()
 	defer pH.Unlock()
 
-	// check step
-	if pH.step != msg.Step {
+	fmt.Println("Response propose")
+
+	storedValue := n.conf.Storage.GetReputationStore().Get(msg.Value.Name)
+	// The person already liked
+	if string(storedValue) == strconv.Itoa(msg.Value.Value) {
+		fmt.Println("AAA")
 		return nil
 	}
 
-	// check message ID (ID < max ID)
-	if msg.ID != pH.maxID {
+	// check step
+	if pH.step != msg.Step {
+		fmt.Println("BBB")
 		return nil
 	}
 
 	// set parameters
 	pH.running = running
 
-	if (pH.acceptedValue == types.PaxosValue{}) {
-		pH.acceptedID = msg.ID
-		// pH.acceptedValue = msg.Value
-	}
-
 	// create accept message
-	paxosAcceptLike := types.PaxosAcceptMessage{
-		Type: msg.Type,
-		Step: pH.step,
-		ID:   msg.ID,
-		// Value: msg.Value,
+	paxosAcceptLike := types.PaxosAcceptLike{
+		Type:  msg.Type,
+		Step:  pH.step,
+		ID:    msg.ID,
+		Value: msg.Value,
 	}
 
 	return &paxosAcceptLike
@@ -617,13 +622,14 @@ func (n *node) ExecAcceptLike(msg types.Message, pkt transport.Packet) error {
 	if !conv {
 		return xerrors.Errorf("wrong type: %T", msg)
 	}
+	fmt.Println("Receive accept")
 
 	// process accept message and create TLC message
 	err := n.reputationHandler.respondToAccepLike(*paxosAcceptMsg, n)
 	return err
 }
 
-func (pH *paxosHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *node) error {
+func (pH *paxosLikeHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *node) error {
 	pH.Lock()
 	defer pH.Unlock()
 
@@ -631,6 +637,7 @@ func (pH *paxosHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *node) e
 	if pH.step != msg.Step {
 		return nil
 	}
+	fmt.Println("Answer accept")
 
 	// set parameters
 	pH.running = running
@@ -639,10 +646,21 @@ func (pH *paxosHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *node) e
 
 	// if threshold has been reached, consensus has been reached
 	if pH.acceptedValues[msg.Value] >= pH.threshold {
-		// TODO update the store and nothing else
-		// n.messagesScore.updateMsgScore(msgID, like)
-		// n.conf.Storage.GetReputationStore().Set(name, "+-1")
+		likerMsgID := strings.Split(msg.Value.Name, ",")
+		msgID := likerMsgID[1]
+		if msg.Value.Value == 1 {
+			n.messagesScore.updateMsgScore(msgID, true)
+		} else {
+			n.messagesScore.updateMsgScore(msgID, false)
+		}
+		store := n.conf.Storage.GetReputationStore()
+		store.Set(msg.Value.Name, []byte(strconv.Itoa(msg.Value.Value)))
 		pH.step++
+
+		fmt.Println("YES")
+		fmt.Println(n.messagesScore.messageScore)
+		fmt.Println(store.Len())
+		fmt.Println(store.Get(msg.Value.Name))
 	}
 
 	return nil

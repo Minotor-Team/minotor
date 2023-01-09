@@ -77,7 +77,7 @@ func (m messaging) likePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = m.node.InitReputationCheck(res.LikerID, "+1", res.MsgSenderID, res.MessID, res.Score)
+	err = m.node.InitReputationCheck(res.LikerID, 1, res.MsgSenderID, res.MessID, res.Score)
 	if err != nil {
 		http.Error(w, "failed to init reputation consensus: "+err.Error(),
 			http.StatusInternalServerError)
@@ -104,6 +104,11 @@ func (m messaging) dislikePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m.node.InitReputationCheck(res.LikerID, "-1", res.MsgSenderID, res.MessID, res.Score)
+	err = m.node.InitReputationCheck(res.LikerID, -1, res.MsgSenderID, res.MessID, res.Score)
+	if err != nil {
+		http.Error(w, "failed to init reputation consensus: "+err.Error(),
+			http.StatusInternalServerError)
+		return
+	}
 
 }
