@@ -33,7 +33,10 @@ func (n *node) LikeConsensus(likerID string, value int, msgSender string, msgID 
 	name := likerID + "," + msgID
 	tp := types.Reputation
 	store := n.conf.Storage.GetReputationStore()
-	storedValue := store.Get(name)
+	storedValue := store.Get(name + "," + strconv.Itoa(value))
+
+	fmt.Println(string(storedValue))
+	fmt.Println(strconv.Itoa(value))
 	// if the liker already liked (dislike) the msg ID, dont accept.
 	if string(storedValue) == strconv.Itoa(value) {
 		fmt.Println("Already liked ! ")
@@ -92,7 +95,7 @@ func (n *node) Phase2(value types.PaxosLike, name string, likeValue int, handler
 
 	// create timeout channel
 	// if timeout and the map is not updated you can considered the consensus wasnt reached, you can click again to retry
-	timeout := time.After(3 * time.Second)
+	timeout := time.After(2 * time.Second)
 
 	// wait for either the value to be received or the timeout to occur
 	select {

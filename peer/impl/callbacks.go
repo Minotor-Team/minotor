@@ -589,7 +589,7 @@ func (pH *paxosLikeHandler) respondToProposeLike(msg types.PaxosProposeLike, n *
 
 	fmt.Println("Response propose")
 
-	storedValue := n.conf.Storage.GetReputationStore().Get(msg.Value.Name)
+	storedValue := n.conf.Storage.GetReputationStore().Get(msg.Value.Name + "," + strconv.Itoa(msg.Value.Value))
 	// The person already liked
 	if string(storedValue) == strconv.Itoa(msg.Value.Value) {
 		fmt.Println("AAA")
@@ -638,18 +638,25 @@ func (pH *paxosLikeHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *nod
 	if pH.acceptedValues[msg.Value] >= pH.threshold {
 		likerMsgID := strings.Split(msg.Value.Name, ",")
 		msgID := likerMsgID[1]
-		if msg.Value.Value == 1 {
-			n.messagesScore.updateMsgScore(msgID, true)
-		} else {
-			n.messagesScore.updateMsgScore(msgID, false)
-		}
-		store := n.conf.Storage.GetReputationStore()
-		store.Set(msg.Value.Name, []byte(strconv.Itoa(msg.Value.Value)))
+		fmt.Println("STEP ")
+		fmt.Println(msg.Step)
+		if !pH.stepUpdate.stepUpdate[msg.Step] {
+			pH.stepUpdate.setStepUpdate(msg.Step, true)
+			if msg.Value.Value == 1 {
+				n.messagesScore.updateMsgScore(msgID, true)
+			} else {
+				n.messagesScore.updateMsgScore(msgID, false)
+			}
+			store := n.conf.Storage.GetReputationStore()
+			stringVal := strconv.Itoa(msg.Value.Value)
+			store.Set(msg.Value.Name+","+stringVal, []byte(stringVal))
 
-		fmt.Println("YES")
-		fmt.Println(n.messagesScore.messageScore)
-		fmt.Println(store.Len())
-		fmt.Println(store.Get(msg.Value.Name))
+			fmt.Println("YES")
+			fmt.Println(n.messagesScore.messageScore)
+			fmt.Println(store.Len())
+			fmt.Println(store.Get(msg.Value.Name))
+			pH.step++
+		}
 	}
 
 	return nil
