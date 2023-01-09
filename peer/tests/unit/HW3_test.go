@@ -61,6 +61,7 @@ func Test_HW3_Paxos_Acceptor_Prepare_Wrong_Step(t *testing.T) {
 	// sending a prepare with a wrong step
 
 	prepare := types.PaxosPrepareMessage{
+		Type:   types.Tag,
 		Step:   99, // wrong step
 		ID:     1,
 		Source: proposer.GetAddress(),
@@ -106,6 +107,7 @@ func Test_HW3_Paxos_Acceptor_Prepare_Wrong_ID(t *testing.T) {
 	// sending a prepare with an ID too low
 
 	prepare := types.PaxosPrepareMessage{
+		Type:   types.Tag,
 		Step:   0,
 		ID:     0, // ID too low
 		Source: proposer.GetAddress(),
@@ -151,6 +153,7 @@ func Test_HW3_Paxos_Acceptor_Prepare_Correct(t *testing.T) {
 	// sending a prepare with a high ID, must then be taken into account
 
 	prepare := types.PaxosPrepareMessage{
+		Type:   types.Tag,
 		Step:   0,
 		ID:     99,
 		Source: proposer.GetAddress(),
@@ -215,6 +218,7 @@ func Test_HW3_Paxos_Acceptor_Propose_Wrong_Step(t *testing.T) {
 	// sending a propose with a wrong step
 
 	propose := types.PaxosProposeMessage{
+		Type: types.Tag,
 		Step: 99, // wrong step
 		ID:   1,
 		Value: types.PaxosValue{
@@ -264,6 +268,7 @@ func Test_HW3_Paxos_Acceptor_Propose_Wrong_ID(t *testing.T) {
 	// sending a propose with a wrong ID
 
 	propose := types.PaxosProposeMessage{
+		Type: types.Tag,
 		Step: 0,
 		// ID too high: 0 is expected since MaxID of a proposer starts at 0 and
 		// the proposer hasn't received any prepare, so its MaxID = 0.
@@ -313,6 +318,7 @@ func Test_HW3_Paxos_Acceptor_Prepare_Already_Promised(t *testing.T) {
 	acceptor.AddPeer(proposer.GetAddress())
 
 	prepare := types.PaxosPrepareMessage{
+		Type: types.Tag,
 		Step: 0,
 		ID:   5,
 	}
@@ -335,6 +341,7 @@ func Test_HW3_Paxos_Acceptor_Prepare_Already_Promised(t *testing.T) {
 	// sending a propose, will make the proposer set its MaxID
 
 	propose := types.PaxosProposeMessage{
+		Type: types.Tag,
 		Step: 0,
 		ID:   5,
 		Value: types.PaxosValue{
@@ -363,6 +370,7 @@ func Test_HW3_Paxos_Acceptor_Prepare_Already_Promised(t *testing.T) {
 	// return the promise ID and promise value.
 
 	prepare = types.PaxosPrepareMessage{
+		Type: types.Tag,
 		Step: 0,
 		ID:   9, // higher ID
 	}
@@ -438,6 +446,7 @@ func Test_HW3_Paxos_Acceptor_Propose_Correct(t *testing.T) {
 	acceptor.AddPeer(proposer.GetAddress())
 
 	propose := types.PaxosProposeMessage{
+		Type: types.Tag,
 		Step: 0,
 		ID:   0,
 		Value: types.PaxosValue{
@@ -458,10 +467,10 @@ func Test_HW3_Paxos_Acceptor_Propose_Correct(t *testing.T) {
 	}
 
 	err = proposer.Send(acceptor.GetAddr(), packet, 0)
+
 	require.NoError(t, err)
 
 	time.Sleep(time.Second)
-
 	// > acceptor must have broadcasted an accept message. Must be the first
 	// sent message in this case.
 
@@ -531,6 +540,7 @@ func Test_HW3_Paxos_Proposer_Prepare_Promise_Wrong_Step(t *testing.T) {
 	// sending back a promise with a wrong step
 
 	promise := types.PaxosPromiseMessage{
+		Type: types.Tag,
 		Step: 99,
 		ID:   paxosID,
 	}
@@ -605,6 +615,7 @@ func Test_HW3_Paxos_Proposer_Prepare_Propose_Correct(t *testing.T) {
 	// sending back a correct promise
 
 	promise := types.PaxosPromiseMessage{
+		Type: types.Tag,
 		Step: 0,
 		ID:   paxosID,
 	}
@@ -666,6 +677,7 @@ func Test_HW3_TLC_Move_Step_Not_Enough(t *testing.T) {
 	previousHash := [32]byte{}
 
 	tlc := types.TLCMessage{
+		Type: types.Tag,
 		Step: 0,
 		Block: types.BlockchainBlock{
 			Index: 0,
@@ -742,6 +754,7 @@ func Test_HW3_TLC_Move_Step_OK(t *testing.T) {
 	previousHash := [32]byte{}
 
 	tlc := types.TLCMessage{
+		Type: types.Tag,
 		Step: 0,
 		Block: types.BlockchainBlock{
 			Index: 0,
@@ -820,6 +833,7 @@ func Test_HW3_TLC_Move_Step_Catchup(t *testing.T) {
 	previousHash0 := [32]byte{}
 
 	tlc0 := types.TLCMessage{
+		Type: types.Tag,
 		Step: 0,
 		Block: types.BlockchainBlock{
 			Index: 0,
@@ -837,6 +851,7 @@ func Test_HW3_TLC_Move_Step_Catchup(t *testing.T) {
 	blockHash1 := "85a4ef7563349ee08c1ce7b669b1cff5afad5f8f47e6c1be307498e981efbfab"
 
 	tlc1 := types.TLCMessage{
+		Type: types.Tag,
 		Step: 1,
 		Block: types.BlockchainBlock{
 			Index: 1,
@@ -854,6 +869,7 @@ func Test_HW3_TLC_Move_Step_Catchup(t *testing.T) {
 	blockHash2 := "4db12a08ff475592180e74b569fd936afef15eeb682bfcc203cb8eb03b8a52f5"
 
 	tlc2 := types.TLCMessage{
+		Type: types.Tag,
 		Step: 2,
 		Block: types.BlockchainBlock{
 			Index: 2,

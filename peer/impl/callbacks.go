@@ -472,6 +472,7 @@ func (n *node) ExecPaxosProposeMessage(msg types.Message, pkt transport.Packet) 
 
 	// broadcast accept message
 	err = n.Broadcast(transportAcceptMsg)
+
 	return err
 }
 

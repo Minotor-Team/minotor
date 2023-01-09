@@ -9,6 +9,7 @@ import (
 	"go.dedis.ch/cs438/peer"
 	"go.dedis.ch/cs438/storage"
 	"go.dedis.ch/cs438/types"
+	"golang.org/x/xerrors"
 )
 
 const paxosPhase1 = 1
@@ -431,6 +432,8 @@ func (pH *paxosHandler) storeBlock(tp types.PaxosType, block types.BlockchainBlo
 		bStore = conf.Storage.GetBlockchainStore()
 	case types.Identity:
 		bStore = conf.Storage.GetBlockchainIdentityStore()
+	default:
+		return xerrors.Errorf("invalid type : %v", tp)
 	}
 
 	// compute key and block to store
@@ -451,9 +454,11 @@ func (pH *paxosHandler) storeBlock(tp types.PaxosType, block types.BlockchainBlo
 
 	switch tp {
 	case types.Tag:
-		bStore = conf.Storage.GetNamingStore()
+		nStore = conf.Storage.GetNamingStore()
 	case types.Identity:
-		bStore = conf.Storage.GetIdentityStore()
+		nStore = conf.Storage.GetIdentityStore()
+	default:
+		return xerrors.Errorf("invalid type : %v", tp)
 	}
 	nStore.Set(block.Value.Filename, []byte(block.Value.Metahash))
 

@@ -62,13 +62,13 @@ func (n *node) Consensus(key string, value string, tp types.PaxosType) error {
 		}
 
 		// launch paxos phase 1
-		proposedValue, err := n.PaxosPhase1(key, value, handler, tp)
+		proposedValue, err := n.PaxosPhase1(key, value, tp)
 		if (err != nil || *proposedValue == types.PaxosValue{}) {
 			return err
 		}
 
 		// launch paxos phase 2
-		ret, err := n.PaxosPhase2(*proposedValue, key, value, handler, tp, store)
+		ret, err := n.PaxosPhase2(*proposedValue, key, value, tp, store)
 		if err != nil || ret {
 			return err
 		}
@@ -76,9 +76,20 @@ func (n *node) Consensus(key string, value string, tp types.PaxosType) error {
 }
 
 // starts paxos phase 1
-func (n *node) PaxosPhase1(key string, value string, handler *paxosHandler, tp types.PaxosType) (*types.PaxosValue, error) {
+func (n *node) PaxosPhase1(key string, value string, tp types.PaxosType) (*types.PaxosValue, error) {
 	for {
 		myAddr := n.soc.GetAddress()
+
+		var handler *paxosHandler
+
+		switch tp {
+		case types.Tag:
+			handler = n.tagHandler
+		case types.Identity:
+			handler = n.identityHandler
+		default:
+			return nil, xerrors.Errorf("invalid type : %v", tp)
+		}
 
 		// broadcast pepare message with proposed value
 		proposedValue := types.PaxosValue{
@@ -117,7 +128,18 @@ func (n *node) PaxosPhase1(key string, value string, handler *paxosHandler, tp t
 }
 
 // starts paxos phase 2
-func (n *node) PaxosPhase2(paxosValue types.PaxosValue, key string, value string, handler *paxosHandler, tp types.PaxosType, store storage.Store) (bool, error) {
+func (n *node) PaxosPhase2(paxosValue types.PaxosValue, key string, value string, tp types.PaxosType, store storage.Store) (bool, error) {
+	var handler *paxosHandler
+
+	switch tp {
+	case types.Tag:
+		handler = n.tagHandler
+	case types.Identity:
+		handler = n.identityHandler
+	default:
+		return true, xerrors.Errorf("invalid type : %v", tp)
+	}
+
 	// broadcast propose message with given value
 	paxosProposeMsg := handler.createProposeMessage(paxosValue, tp)
 	valueChannel := handler.getValueChannel()
