@@ -10,11 +10,13 @@ import (
 )
 
 const (
-	blob               = "blob"
-	naming             = "naming"
-	blockchain         = "blockchain"
-	identity           = "identity"
-	blockchainidentity = "blockchainidentity"
+	blob                 = "blob"
+	naming               = "naming"
+	blockchain           = "blockchain"
+	identity             = "identity"
+	blockchainidentity   = "blockchainidentity"
+	reputation           = "reputation"
+	blockchainreputation = "blockchainreputation"
 )
 
 // NewPersistency return a new initialized file-based storage. Opeartions are
@@ -50,13 +52,25 @@ func NewPersistency(folderPath string) (storage.Storage, error) {
 		return nil, xerrors.Errorf("failed to create blockchainIdentityStore: %v", err)
 	}
 
+	reputationStore, err := newStore(filepath.Join(folderPath, reputation))
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reputationStore: %v", err)
+	}
+
+	blockchainReputationStore, err := newStore(filepath.Join(folderPath, blockchainreputation))
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create blockchainReputationStore: %v", err)
+	}
+
 	return Storage{
-		folderPath:         folderPath,
-		blob:               blobStore,
-		naming:             namingStore,
-		blockchain:         blockchainStore,
-		identity:           identityStore,
-		blockchainIdentity: blockchainIdentityStore,
+		folderPath:           folderPath,
+		blob:                 blobStore,
+		naming:               namingStore,
+		blockchain:           blockchainStore,
+		identity:             identityStore,
+		blockchainIdentity:   blockchainIdentityStore,
+		reputation:           reputationStore,
+		blockchainReputation: blockchainReputationStore,
 	}, nil
 }
 
@@ -66,11 +80,13 @@ func NewPersistency(folderPath string) (storage.Storage, error) {
 type Storage struct {
 	folderPath string
 
-	blob               storage.Store
-	naming             storage.Store
-	blockchain         storage.Store
-	identity           storage.Store
-	blockchainIdentity storage.Store
+	blob                 storage.Store
+	naming               storage.Store
+	blockchain           storage.Store
+	identity             storage.Store
+	blockchainIdentity   storage.Store
+	reputation           storage.Store
+	blockchainReputation storage.Store
 }
 
 // GetFolderPath returns the folder path
@@ -101,6 +117,16 @@ func (s Storage) GetIdentityStore() storage.Store {
 // GetBlockchainIdentityStore implements storage.Storage
 func (s Storage) GetBlockchainIdentityStore() storage.Store {
 	return s.blockchainIdentity
+}
+
+// GetReputationStore implements storage.Storage
+func (s Storage) GetReputationStore() storage.Store {
+	return s.reputation
+}
+
+// GetBlockchainReputationStore implements storage.Storage
+func (s Storage) GetBlockchainReputationStore() storage.Store {
+	return s.blockchainReputation
 }
 
 func newStore(folderPath string) (*store, error) {

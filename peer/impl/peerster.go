@@ -11,21 +11,22 @@ import (
 
 // implements a peer to build a Peerster system
 type node struct {
-	wg              sync.WaitGroup
-	run             uint32
-	stopChannel     chan struct{}
-	conf            peer.Configuration
-	soc             transport.Socket
-	reg             registry.Registry
-	routingTable    *nodeRT
-	rumorsHandler   *rumorsHandler
-	acksHandler     *channelsHandler
-	catalog         *catalog
-	requestsHandler *channelsHandler
-	store           *store
-	searchsHandler  *channelsHandler
-	tagHandler      *paxosHandler
-	identityHandler *paxosHandler
+	wg                sync.WaitGroup
+	run               uint32
+	stopChannel       chan struct{}
+	conf              peer.Configuration
+	soc               transport.Socket
+	reg               registry.Registry
+	routingTable      *nodeRT
+	rumorsHandler     *rumorsHandler
+	acksHandler       *channelsHandler
+	catalog           *catalog
+	requestsHandler   *channelsHandler
+	store             *store
+	searchsHandler    *channelsHandler
+	tagHandler        *paxosHandler
+	identityHandler   *paxosHandler
+	reputationHandler *paxosHandler
 }
 
 // Wraps up the node implemented until HW3 in a structure for high abstraction on what was
@@ -36,21 +37,22 @@ type PeersterNode struct {
 
 func NewPeersterNode(conf peer.Configuration) *PeersterNode {
 	node := &node{
-		wg:              sync.WaitGroup{},
-		run:             uint32(0),
-		stopChannel:     make(chan struct{}),
-		conf:            conf,
-		soc:             conf.Socket,
-		reg:             conf.MessageRegistry,
-		routingTable:    newNodeRT(),
-		rumorsHandler:   newRumorsHandler(),
-		acksHandler:     newChannelsHandler(),
-		catalog:         newCatalog(),
-		requestsHandler: newChannelsHandler(),
-		store:           newStore(),
-		searchsHandler:  newChannelsHandler(),
-		tagHandler:      newPaxosHandler(conf),
-		identityHandler: newPaxosHandler(conf),
+		wg:                sync.WaitGroup{},
+		run:               uint32(0),
+		stopChannel:       make(chan struct{}),
+		conf:              conf,
+		soc:               conf.Socket,
+		reg:               conf.MessageRegistry,
+		routingTable:      newNodeRT(),
+		rumorsHandler:     newRumorsHandler(),
+		acksHandler:       newChannelsHandler(),
+		catalog:           newCatalog(),
+		requestsHandler:   newChannelsHandler(),
+		store:             newStore(),
+		searchsHandler:    newChannelsHandler(),
+		tagHandler:        newPaxosHandler(conf),
+		identityHandler:   newPaxosHandler(conf),
+		reputationHandler: newPaxosHandler(conf),
 	}
 
 	myAddr := node.soc.GetAddress()

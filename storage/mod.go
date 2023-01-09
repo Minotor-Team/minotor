@@ -20,6 +20,10 @@ type Storage interface {
 	GetIdentityStore() Store
 
 	GetBlockchainIdentityStore() Store
+
+	GetReputationStore() Store
+
+	GetBlockchainReputationStore() Store
 }
 
 // Store describes the primitives of a simple storage.

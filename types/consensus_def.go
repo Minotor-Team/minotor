@@ -79,8 +79,9 @@ type PaxosValue struct {
 type PaxosType string
 
 const (
-	Tag      PaxosType = "tag"
-	Identity PaxosType = "identity"
+	Tag        PaxosType = "tag"
+	Identity   PaxosType = "identity"
+	Reputation PaxosType = "reputation"
 )
 
 // String returns a string representation.
