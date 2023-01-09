@@ -27,7 +27,8 @@ func NewPeer(conf peer.Configuration) peer.Peer {
 		requestsHandler: newChannelsHandler(),
 		store:           newStore(),
 		searchsHandler:  newChannelsHandler(),
-		paxosHandler:    newPaxosHandler(conf),
+		tagHandler:      newPaxosHandler(conf),
+		identityHandler: newPaxosHandler(conf),
 	}
 
 	myAddr := node.soc.GetAddress()
@@ -67,7 +68,8 @@ type node struct {
 	requestsHandler *channelsHandler
 	store           *store
 	searchsHandler  *channelsHandler
-	paxosHandler    *paxosHandler
+	tagHandler      *paxosHandler
+	identityHandler *paxosHandler
 }
 
 type void struct{}

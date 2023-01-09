@@ -12,7 +12,7 @@ import (
 // the interfaces that will have to be implemented.
 type Peer interface {
 	Service
-	Identity
+	IdentityVerifier
 	Messaging
 	DataSharing
 }

@@ -401,8 +401,19 @@ func (n *node) ExecPaxosPrepareMessage(msg types.Message, pkt transport.Packet) 
 		return xerrors.Errorf("wrong type: %T", msg)
 	}
 
+	var handler *paxosHandler
+
+	switch paxosPrepareMsg.Type {
+	case types.Tag:
+		handler = n.tagHandler
+	case types.Identity:
+		handler = n.identityHandler
+	default:
+		return xerrors.Errorf("invalid type : %v", paxosPrepareMsg.Type)
+	}
+
 	// process prepare message and create promise message
-	promise := n.paxosHandler.respondToPrepareMsg(*paxosPrepareMsg)
+	promise := handler.respondToPrepareMsg(*paxosPrepareMsg)
 	if promise == nil {
 		return nil
 	}
@@ -437,8 +448,19 @@ func (n *node) ExecPaxosProposeMessage(msg types.Message, pkt transport.Packet) 
 		return xerrors.Errorf("wrong type: %T", msg)
 	}
 
+	var handler *paxosHandler
+
+	switch paxosProposeMsg.Type {
+	case types.Tag:
+		handler = n.tagHandler
+	case types.Identity:
+		handler = n.identityHandler
+	default:
+		return xerrors.Errorf("invalid type : %v", paxosProposeMsg.Type)
+	}
+
 	// process propose message and create accept message
-	accept := n.paxosHandler.respondToProposeMsg(*paxosProposeMsg)
+	accept := handler.respondToProposeMsg(*paxosProposeMsg)
 	if accept == nil {
 		return nil
 	}
@@ -461,8 +483,19 @@ func (n *node) ExecPaxosPromiseMessage(msg types.Message, pkt transport.Packet) 
 		return xerrors.Errorf("wrong type: %T", msg)
 	}
 
+	var handler *paxosHandler
+
+	switch paxosPromiseMsg.Type {
+	case types.Tag:
+		handler = n.tagHandler
+	case types.Identity:
+		handler = n.identityHandler
+	default:
+		return xerrors.Errorf("invalid type : %v", paxosPromiseMsg.Type)
+	}
+
 	// process promise message
-	n.paxosHandler.respondToPromiseMsg(*paxosPromiseMsg)
+	handler.respondToPromiseMsg(*paxosPromiseMsg)
 
 	return nil
 }
@@ -475,8 +508,19 @@ func (n *node) ExecPaxosAcceptMessage(msg types.Message, pkt transport.Packet) e
 		return xerrors.Errorf("wrong type: %T", msg)
 	}
 
+	var handler *paxosHandler
+
+	switch paxosAcceptMsg.Type {
+	case types.Tag:
+		handler = n.tagHandler
+	case types.Identity:
+		handler = n.identityHandler
+	default:
+		return xerrors.Errorf("invalid type : %v", paxosAcceptMsg.Type)
+	}
+
 	// process accept message and create TLC message
-	TLCMsg, err := n.paxosHandler.respondToAcceptMsg(*paxosAcceptMsg, n)
+	TLCMsg, err := handler.respondToAcceptMsg(*paxosAcceptMsg, n)
 	if err != nil || TLCMsg.Block.Hash == nil {
 		return err
 	}
@@ -494,8 +538,19 @@ func (n *node) ExecTLCMessage(msg types.Message, pkt transport.Packet) error {
 		return xerrors.Errorf("wrong type: %T", msg)
 	}
 
+	var handler *paxosHandler
+
+	switch TLCMsg.Type {
+	case types.Tag:
+		handler = n.tagHandler
+	case types.Identity:
+		handler = n.identityHandler
+	default:
+		return xerrors.Errorf("invalid type : %v", TLCMsg.Type)
+	}
+
 	// process TLC message and check if need to be broadcasted
-	broadcasted, err := n.paxosHandler.respondToTLCMsg(*TLCMsg, n)
+	broadcasted, err := handler.respondToTLCMsg(*TLCMsg, n)
 	if err != nil {
 		return err
 	}

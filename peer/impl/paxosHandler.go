@@ -146,11 +146,12 @@ func (pH *paxosHandler) nextID() {
 }
 
 // creates a prepare message with given source and init paramaters
-func (pH *paxosHandler) createPrepareMessage(source string, value types.PaxosValue) types.PaxosPrepareMessage {
+func (pH *paxosHandler) createPrepareMessage(source string, value types.PaxosValue, tp types.PaxosType) types.PaxosPrepareMessage {
 	pH.Lock()
 	defer pH.Unlock()
 
 	paxosPrepareMsg := types.PaxosPrepareMessage{
+		Type:   tp,
 		Step:   pH.step,
 		ID:     pH.paxosID,
 		Source: source,
@@ -165,11 +166,12 @@ func (pH *paxosHandler) createPrepareMessage(source string, value types.PaxosVal
 }
 
 // creates propose message with given value
-func (pH *paxosHandler) createProposeMessage(value types.PaxosValue) types.PaxosProposeMessage {
+func (pH *paxosHandler) createProposeMessage(value types.PaxosValue, tp types.PaxosType) types.PaxosProposeMessage {
 	pH.RLock()
 	defer pH.RUnlock()
 
 	paxosProposeMsg := types.PaxosProposeMessage{
+		Type:  tp,
 		Step:  pH.step,
 		ID:    pH.paxosID,
 		Value: value,
@@ -204,6 +206,7 @@ func (pH *paxosHandler) respondToPrepareMsg(msg types.PaxosPrepareMessage) *type
 	}
 
 	paxosPromiseMsg := types.PaxosPromiseMessage{
+		Type:          msg.Type,
 		Step:          pH.step,
 		ID:            msg.ID,
 		AcceptedID:    pH.acceptedID,
@@ -238,6 +241,7 @@ func (pH *paxosHandler) respondToProposeMsg(msg types.PaxosProposeMessage) *type
 
 	// create accept message
 	paxosAcceptMsg := types.PaxosAcceptMessage{
+		Type:  msg.Type,
 		Step:  pH.step,
 		ID:    msg.ID,
 		Value: msg.Value,
@@ -300,16 +304,17 @@ func (pH *paxosHandler) respondToAcceptMsg(msg types.PaxosAcceptMessage, n *node
 	if pH.acceptedValues[msg.Value] >= pH.threshold {
 
 		// build blockchain block
-		block := pH.buildBlock(msg.Value, n.conf)
+		block := pH.buildBlock(msg, n.conf)
 
 		// store block in store
-		err := pH.storeBlock(block, n.conf)
+		err := pH.storeBlock(msg.Type, block, n.conf)
 		if err != nil {
 			return nil, err
 		}
 
 		// create TLC message
 		TLCMsg := types.TLCMessage{
+			Type:  msg.Type,
 			Step:  pH.step,
 			Block: block,
 		}
@@ -349,7 +354,7 @@ func (pH *paxosHandler) respondToTLCMsg(msg types.TLCMessage, n *node) (bool, er
 		// if threshold has been reached, consensus has been reached
 		if uint(len(pH.TLCMap[pH.step])) >= pH.threshold {
 			// store block in store
-			err := pH.storeBlock(msg.Block, n.conf)
+			err := pH.storeBlock(msg.Type, msg.Block, n.conf)
 
 			// set final value
 			pH.finalValue = msg.Block.Value
@@ -374,10 +379,18 @@ func (pH *paxosHandler) respondToTLCMsg(msg types.TLCMessage, n *node) (bool, er
 }
 
 // builds new blockchain block
-func (pH *paxosHandler) buildBlock(paxosValue types.PaxosValue, conf peer.Configuration) types.BlockchainBlock {
+func (pH *paxosHandler) buildBlock(msg types.PaxosAcceptMessage, conf peer.Configuration) types.BlockchainBlock {
 	// set final value
-	pH.finalValue = paxosValue
-	store := conf.Storage.GetBlockchainStore()
+	pH.finalValue = msg.Value
+
+	var store storage.Store
+
+	switch msg.Type {
+	case types.Tag:
+		store = conf.Storage.GetBlockchainStore()
+	case types.Identity:
+		store = conf.Storage.GetBlockchainIdentityStore()
+	}
 
 	// get last blockchain block
 	lastBlock := store.Get(storage.LastBlockKey)
@@ -387,9 +400,9 @@ func (pH *paxosHandler) buildBlock(paxosValue types.PaxosValue, conf peer.Config
 
 	// compute data to hash
 	data := []byte(strconv.Itoa(int(pH.step)))
-	data = append(data, []byte(paxosValue.UniqID)...)
-	data = append(data, []byte(paxosValue.Filename)...)
-	data = append(data, []byte(paxosValue.Metahash)...)
+	data = append(data, []byte(msg.Value.UniqID)...)
+	data = append(data, []byte(msg.Value.Filename)...)
+	data = append(data, []byte(msg.Value.Metahash)...)
 	data = append(data, lastBlock...)
 
 	// hash data
@@ -401,7 +414,7 @@ func (pH *paxosHandler) buildBlock(paxosValue types.PaxosValue, conf peer.Config
 	block := types.BlockchainBlock{
 		Index:    pH.step,
 		Hash:     hashSlice,
-		Value:    paxosValue,
+		Value:    msg.Value,
 		PrevHash: lastBlock,
 	}
 
@@ -409,8 +422,16 @@ func (pH *paxosHandler) buildBlock(paxosValue types.PaxosValue, conf peer.Config
 }
 
 // stores block in store
-func (pH *paxosHandler) storeBlock(block types.BlockchainBlock, conf peer.Configuration) error {
-	bStore := conf.Storage.GetBlockchainStore()
+func (pH *paxosHandler) storeBlock(tp types.PaxosType, block types.BlockchainBlock, conf peer.Configuration) error {
+
+	var bStore storage.Store
+
+	switch tp {
+	case types.Tag:
+		bStore = conf.Storage.GetBlockchainStore()
+	case types.Identity:
+		bStore = conf.Storage.GetBlockchainIdentityStore()
+	}
 
 	// compute key and block to store
 	key := hex.EncodeToString(block.Hash)
@@ -426,7 +447,14 @@ func (pH *paxosHandler) storeBlock(block types.BlockchainBlock, conf peer.Config
 	bStore.Set(storage.LastBlockKey, block.Hash)
 
 	// store filename and hash in naming store
-	nStore := conf.Storage.GetNamingStore()
+	var nStore storage.Store
+
+	switch tp {
+	case types.Tag:
+		bStore = conf.Storage.GetNamingStore()
+	case types.Identity:
+		bStore = conf.Storage.GetIdentityStore()
+	}
 	nStore.Set(block.Value.Filename, []byte(block.Value.Metahash))
 
 	return nil
@@ -439,7 +467,7 @@ func (pH *paxosHandler) catchUp(conf peer.Configuration) error {
 		TLCMsg := pH.TLCMap[pH.step][pH.threshold-1]
 
 		// store block
-		err := pH.storeBlock(TLCMsg.Block, conf)
+		err := pH.storeBlock(TLCMsg.Type, TLCMsg.Block, conf)
 		if err != nil {
 			return err
 		}
