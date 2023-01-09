@@ -597,15 +597,15 @@ func (pH *paxosHandler) respondToProposeLike(msg types.PaxosProposeLike) *types.
 
 	if (pH.acceptedValue == types.PaxosValue{}) {
 		pH.acceptedID = msg.ID
-		pH.acceptedValue = msg.Value
+		// pH.acceptedValue = msg.Value
 	}
 
 	// create accept message
 	paxosAcceptLike := types.PaxosAcceptMessage{
-		Type:  msg.Type,
-		Step:  pH.step,
-		ID:    msg.ID,
-		Value: msg.Value,
+		Type: msg.Type,
+		Step: pH.step,
+		ID:   msg.ID,
+		// Value: msg.Value,
 	}
 
 	return &paxosAcceptLike
@@ -640,8 +640,8 @@ func (pH *paxosHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *node) e
 	// if threshold has been reached, consensus has been reached
 	if pH.acceptedValues[msg.Value] >= pH.threshold {
 		// TODO update the store and nothing else
-		n.messagesScore.updateMsgScore(msgID, like)
-		n.conf.Storage.GetReputationStore().Set(name, "+-1")
+		// n.messagesScore.updateMsgScore(msgID, like)
+		// n.conf.Storage.GetReputationStore().Set(name, "+-1")
 		pH.step++
 	}
 
