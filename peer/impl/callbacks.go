@@ -571,6 +571,9 @@ func (n *node) ExecProposeLike(msg types.Message, pkt transport.Packet) error {
 
 	// process accept message and create TLC message
 	acceptLike := n.reputationHandler.respondToProposeLike(*paxosProposeLike, n)
+	if acceptLike == nil {
+		return nil
+	}
 
 	transportAcceptLike, err := n.reg.MarshalMessage(acceptLike)
 	if err != nil {
