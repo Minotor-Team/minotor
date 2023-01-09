@@ -556,3 +556,94 @@ func (n *node) broadcastTLC(TLCMsg *types.TLCMessage) error {
 
 	return err
 }
+
+// Paxos reputation
+func (n *node) ExecProposeLike(msg types.Message, pkt transport.Packet) error {
+	// convert message to PaxosAcceptMessage
+	paxosProposeLike, conv := msg.(*types.PaxosProposeLike)
+	if !conv {
+		return xerrors.Errorf("wrong type: %T", msg)
+	}
+
+	// process accept message and create TLC message
+	acceptLike := n.reputationHandler.respondToProposeLike(*paxosProposeLike)
+
+	transportAcceptLike, err := n.reg.MarshalMessage(acceptLike)
+	if err != nil {
+		return err
+	}
+
+	// broadcast accept message
+	err = n.Broadcast(transportAcceptLike)
+	return err
+}
+
+func (pH *paxosHandler) respondToProposeLike(msg types.PaxosProposeLike) *types.PaxosAcceptMessage {
+	pH.Lock()
+	defer pH.Unlock()
+
+	// check step
+	if pH.step != msg.Step {
+		return nil
+	}
+
+	// check message ID (ID < max ID)
+	if msg.ID != pH.maxID {
+		return nil
+	}
+
+	// set parameters
+	pH.running = running
+
+	if (pH.acceptedValue == types.PaxosValue{}) {
+		pH.acceptedID = msg.ID
+		pH.acceptedValue = msg.Value
+	}
+
+	// create accept message
+	paxosAcceptLike := types.PaxosAcceptMessage{
+		Type:  msg.Type,
+		Step:  pH.step,
+		ID:    msg.ID,
+		Value: msg.Value,
+	}
+
+	return &paxosAcceptLike
+}
+
+func (n *node) ExecAcceptLike(msg types.Message, pkt transport.Packet) error {
+	// convert message to PaxosAcceptMessage
+	paxosAcceptMsg, conv := msg.(*types.PaxosAcceptLike)
+	if !conv {
+		return xerrors.Errorf("wrong type: %T", msg)
+	}
+
+	// process accept message and create TLC message
+	err := n.reputationHandler.respondToAccepLike(*paxosAcceptMsg, n)
+	return err
+}
+
+func (pH *paxosHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *node) error {
+	pH.Lock()
+	defer pH.Unlock()
+
+	// check step
+	if pH.step != msg.Step {
+		return nil
+	}
+
+	// set parameters
+	pH.running = running
+
+	pH.acceptedValues[msg.Value]++
+
+	// if threshold has been reached, consensus has been reached
+	if pH.acceptedValues[msg.Value] >= pH.threshold {
+		// TODO update the store and nothing else
+		n.messagesScore.updateMsgScore(msgID, like)
+		n.conf.Storage.GetReputationStore().Set(name, "+-1")
+		pH.step++
+	}
+
+	return nil
+}

@@ -3,7 +3,6 @@ package impl
 import (
 	"crypto"
 	"encoding/hex"
-	"fmt"
 	"strconv"
 	"sync"
 
@@ -356,8 +355,6 @@ func (pH *paxosHandler) respondToTLCMsg(msg types.TLCMessage, n *node) (bool, er
 		if uint(len(pH.TLCMap[pH.step])) >= pH.threshold {
 			// store block in store
 			err := pH.storeBlock(msg.Block, n.conf)
-
-			fmt.Println("We did it !")
 
 			// set final value
 			pH.finalValue = msg.Block.Value

@@ -30,7 +30,6 @@ func NewPeer(conf peer.Configuration) peer.Peer {
 		tagHandler:        newPaxosHandler(conf),
 		identityHandler:   newPaxosHandler(conf),
 		reputationHandler: newPaxosHandler(conf),
-		messageReputation: newMsgReputation(),
 		messagesScore:     newMsgScore(),
 	}
 
@@ -56,6 +55,9 @@ func NewPeer(conf peer.Configuration) peer.Peer {
 	node.reg.RegisterMessageCallback(types.LikeMessage{}, node.ExecLikeMessage)
 	node.reg.RegisterMessageCallback(types.DislikeMessage{}, node.ExecDislikeMessage)
 
+	node.reg.RegisterMessageCallback(types.PaxosProposeLike{}, node.ExecProposeLike)
+	node.reg.RegisterMessageCallback(types.PaxosAcceptLike{}, node.ExecAcceptLike)
+
 	return node
 }
 
@@ -78,7 +80,6 @@ type node struct {
 	tagHandler        *paxosHandler
 	identityHandler   *paxosHandler
 	reputationHandler *paxosHandler
-	messageReputation *messageReputation
 	messagesScore     *messagesScore
 }
 

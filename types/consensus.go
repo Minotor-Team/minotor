@@ -117,3 +117,49 @@ func (p TLCMessage) String() string {
 func (p TLCMessage) HTML() string {
 	return p.String()
 }
+
+// -----------------------------------------------------------------------------
+// PaxosProposeLike
+
+// NewEmpty implements types.Message.
+func (p PaxosProposeLike) NewEmpty() Message {
+	return &PaxosProposeLike{}
+}
+
+// Name implements types.Message.
+func (p PaxosProposeLike) Name() string {
+	return "paxosproposelike"
+}
+
+// String implements types.Message.
+func (p PaxosProposeLike) String() string {
+	return fmt.Sprintf("{paxosproposelike %d - %d (%v)}", p.Step, p.ID, p.Value)
+}
+
+// HTML implements types.Message.
+func (p PaxosProposeLike) HTML() string {
+	return p.String()
+}
+
+// -----------------------------------------------------------------------------
+// PaxosAcceptLike
+
+// NewEmpty implements types.Message.
+func (p PaxosAcceptLike) NewEmpty() Message {
+	return &PaxosAcceptLike{}
+}
+
+// Name implements types.Message.
+func (p PaxosAcceptLike) Name() string {
+	return "paxosacceptlike"
+}
+
+// String implements types.Message.
+func (p PaxosAcceptLike) String() string {
+	return fmt.Sprintf("{paxosacceptlike %d - %d (%v)}", p.Step, p.ID, p.Value)
+}
+
+// HTML implements types.Message.
+func (p PaxosAcceptLike) HTML() string {
+	return p.String()
+}

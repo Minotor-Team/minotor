@@ -56,6 +56,20 @@ type PaxosAcceptMessage struct {
 	Value PaxosValue
 }
 
+type PaxosProposeLike struct {
+	Type  PaxosType
+	Step  uint
+	ID    uint
+	Value PaxosLike
+}
+
+type PaxosAcceptLike struct {
+	Type  PaxosType
+	Step  uint
+	ID    uint
+	Value PaxosValue
+}
+
 // TLCMessage defines a TLC message
 //
 // - implements types.Message
@@ -74,6 +88,13 @@ type PaxosValue struct {
 
 	Filename string
 	Metahash string
+}
+
+type PaxosLike struct {
+	Name string
+	// value is 1 for like -1 for dislike
+	Value int
+	Score int
 }
 
 type PaxosType string
