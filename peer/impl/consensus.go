@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/rs/xid"
@@ -34,6 +35,7 @@ func (n *node) Consensus(key string, value string, tp types.PaxosType) error {
 	// if only one node set key/value
 	if n.conf.TotalPeers <= 1 {
 		store.Set(key, []byte(value))
+		fmt.Printf("store %v - %v \n", key, value)
 		return nil
 	}
 

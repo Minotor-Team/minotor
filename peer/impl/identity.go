@@ -1,10 +1,15 @@
 package impl
 
-import "go.dedis.ch/cs438/types"
+import (
+	"fmt"
+
+	"go.dedis.ch/cs438/types"
+)
 
 // init consensus on identity
-func (n *node) InitIdentityCheck(name, email, phone string) error {
-	return n.Consensus(name, "1", types.Identity)
+func (n *node) InitIdentityCheck(name, email, phone string) {
+	fmt.Println("IDENTITY CONSENSUS")
+	n.Consensus(name, "1", types.Identity)
 }
 
 func (n *node) GetVerifiedUsers() []string {

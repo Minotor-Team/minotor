@@ -11,23 +11,23 @@ import (
 )
 
 // NewIdentityCtrl returns a new initialized service controller.
-func NewIdentityCtrl(peer peer.Peer, log *zerolog.Logger) identityctrl {
-	return identityctrl{
+func NewIdentityVerifierCtrl(peer peer.Peer, log *zerolog.Logger) identityverifier {
+	return identityverifier{
 		peer: peer,
 		log:  log,
 	}
 }
 
-type identityctrl struct {
+type identityverifier struct {
 	peer peer.Peer
 	log  *zerolog.Logger
 }
 
-func (i identityctrl) IdentityCheckHandler() http.HandlerFunc {
+func (id identityverifier) IdentityCheckHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			i.identityCheckPost(w, r)
+			id.identityCheckPost(w, r)
 		case http.MethodOptions:
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			w.Header().Set("Access-Control-Allow-Headers", "*")
@@ -44,14 +44,14 @@ func (i identityctrl) IdentityCheckHandler() http.HandlerFunc {
 //	    "Email": "XXX",
 //	    "Phone": "XXX",
 //	}
-func (i identityctrl) identityCheckPost(w http.ResponseWriter, r *http.Request) {
+func (id identityverifier) identityCheckPost(w http.ResponseWriter, r *http.Request) {
 	buf, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "failed to read body: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	i.log.Info().Msgf("got the following message: %s", buf)
+	id.log.Info().Msgf("got the following message: %s", buf)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -64,5 +64,5 @@ func (i identityctrl) identityCheckPost(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	i.peer.InitIdentityCheck(res.Name, res.Email, res.Phone)
+	id.peer.InitIdentityCheck(res.Name, res.Email, res.Phone)
 }
