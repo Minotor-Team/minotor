@@ -865,9 +865,15 @@ class Verification extends BaseElement {
 
         try {
             this.flash.printSuccess("Your identity will be verified soon.");
-            await this.fetch(addr, fetchArgs);
-            this.peerInfo.approvalTarget.innerText = "Yes";
-            this.flash.printSuccess("Welcome " + this.peerInfo.name + "! Your identity has been successfully verified.");
+            const resp = await this.fetch(addr, fetchArgs);
+            const text = await resp.text();
+            const connected = JSON.parse(text).connected;
+            if (connected) {
+                this.peerInfo.approvalTarget.innerText = "Yes";
+                this.flash.printSuccess("Welcome " + this.peerInfo.name + "! Your identity has been successfully verified.");
+            } else {
+                this.flash.printError("You have been rejected from the network!");
+            }
         } catch (e) {
             this.flash.printError("failed to send identity check: " + e);
         }

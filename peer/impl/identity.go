@@ -7,7 +7,7 @@ import (
 )
 
 // init consensus on identity
-func (n *node) InitIdentityCheck(name, email, phone string) {
+func (n *node) InitIdentityCheck(name, email, phone string) bool {
 	store := n.conf.Storage.GetIdentityStore()
 	fmt.Printf("routing table start : %v\n", len(n.routingTable.getRoutingTable()))
 	fmt.Printf("store start : %v\n", store.Len())
@@ -19,6 +19,7 @@ func (n *node) InitIdentityCheck(name, email, phone string) {
 		fmt.Printf("key - value = %v - %v\n", key, string(val))
 		return true
 	})
+	return true
 }
 
 func (n *node) GetVerifiedUsers() []string {

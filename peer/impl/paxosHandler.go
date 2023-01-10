@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/rs/xid"
 	"go.dedis.ch/cs438/peer"
 	"go.dedis.ch/cs438/storage"
 	"go.dedis.ch/cs438/types"
@@ -153,7 +154,12 @@ func (pH *paxosHandler) nextID() {
 	pH.Lock()
 	defer pH.Unlock()
 
-	pH.paxosID += pH.nPeers
+	switch pH.tp {
+	case types.Tag:
+		pH.paxosID += pH.nPeers
+	case types.Identity:
+		pH.paxosID += 1
+	}
 }
 
 // creates a prepare message with given source and init paramaters
@@ -222,7 +228,11 @@ func (pH *paxosHandler) respondToPrepareMsg(msg types.PaxosPrepareMessage, conf 
 	case types.Identity:
 		connected := conf.Storage.GetIdentityStore().Get(msg.Value.Filename)
 		if connected != nil {
-			return nil
+			acceptedValue = &types.PaxosValue{
+				UniqID:   xid.New().String(),
+				Filename: msg.Value.Filename,
+				Metahash: "0",
+			}
 		}
 		acceptedValue = msg.Value
 	}

@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/rs/xid"
@@ -143,6 +144,7 @@ func (n *node) PaxosPhase2(paxosValue types.PaxosValue, key string, value string
 			return true, nil
 		}
 		// else start again with consensus function
+		fmt.Printf("a) value : %v\n", finalValue)
 		return true, n.Consensus(key, value, handler.getType())
 	// if ticker is triggered
 	case <-ticker.C:
@@ -152,6 +154,7 @@ func (n *node) PaxosPhase2(paxosValue types.PaxosValue, key string, value string
 			if finalValue.Filename == key && finalValue.Metahash == value {
 				return true, nil
 			}
+			fmt.Printf("b) value : %v\n", finalValue)
 			return true, n.Consensus(key, value, handler.getType())
 		}
 		// increment paxos ID and restart loop

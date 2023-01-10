@@ -27,14 +27,18 @@ func (id identityverifier) VerificationHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			id.identityCheckPost(w, r)
+			connected := id.identityCheckPost(w, r)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"status":     "success",
+				"statusCode": 200,
+				"connected":  connected,
+			})
 		case http.MethodOptions:
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			w.Header().Set("Access-Control-Allow-Headers", "*")
-			return
 		default:
 			http.Error(w, "forbidden method", http.StatusMethodNotAllowed)
-			return
 		}
 	}
 }
@@ -44,11 +48,11 @@ func (id identityverifier) VerificationHandler() http.HandlerFunc {
 //	    "Email": "XXX",
 //	    "Phone": "XXX",
 //	}
-func (id identityverifier) identityCheckPost(w http.ResponseWriter, r *http.Request) {
+func (id identityverifier) identityCheckPost(w http.ResponseWriter, r *http.Request) bool {
 	buf, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "failed to read body: "+err.Error(), http.StatusInternalServerError)
-		return
+		return false
 	}
 
 	id.log.Info().Msgf("got the following message: %s", buf)
@@ -61,8 +65,9 @@ func (id identityverifier) identityCheckPost(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		http.Error(w, "failed to unmarshal unicast argument: "+err.Error(),
 			http.StatusInternalServerError)
-		return
+		return false
 	}
 
-	id.peer.InitIdentityCheck(res.Name, res.Email, res.Phone)
+	connected := id.peer.InitIdentityCheck(res.Name, res.Email, res.Phone)
+	return connected
 }

@@ -14,5 +14,5 @@ type Service interface {
 	// - implemented in HW0
 	Stop() error
 
-	InitIdentityCheck(name, email, phone string)
+	InitIdentityCheck(name, email, phone string) bool
 }
