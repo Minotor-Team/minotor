@@ -94,20 +94,6 @@ func (pH *paxosLikeHandler) getStep() uint {
 	return pH.step
 }
 
-func (pH *paxosLikeHandler) getFinalValue() types.PaxosLike {
-	pH.RLock()
-	defer pH.RUnlock()
-
-	return pH.finalValue
-}
-
-func (pH *paxosLikeHandler) nextID() {
-	pH.Lock()
-	defer pH.Unlock()
-
-	pH.paxosID += pH.nPeers
-}
-
 func (pH *paxosLikeHandler) getValueChannel() chan types.PaxosLike {
 	pH.RLock()
 	defer pH.RUnlock()

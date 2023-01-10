@@ -34,10 +34,9 @@ func (n *node) LikeConsensus(likerID string, value int, msgSender string, msgID 
 	store := n.conf.Storage.GetReputationStore()
 
 	storedValue := store.Get(name)
-	// if the liker already liked (dislike) the msg ID, dont accept.
+	// if the liker already liked (dislike) the msg ID, malicious user
 	if string(storedValue) == strconv.Itoa(value) {
-		fmt.Println("Already liked ! ")
-		return xerrors.Errorf("already liked : %v", name)
+		fmt.Println("I have already liked, but I try 😈")
 	}
 	handler := n.reputationHandler
 
