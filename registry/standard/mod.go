@@ -2,6 +2,7 @@ package standard
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"sync"
 	"time"
@@ -17,6 +18,7 @@ func NewRegistry() registry.Registry {
 	return &Registry{
 		handlers: make(map[string]registry.Exec),
 		notif:    notifications{},
+		notifMap: notificationsMap{},
 		msgs:     messages{},
 	}
 }
@@ -29,6 +31,7 @@ type Registry struct {
 
 	handlers map[string]registry.Exec
 	notif    notifications
+	notifMap notificationsMap
 	msgs     messages
 }
 
@@ -39,6 +42,19 @@ func (r *Registry) RegisterMessageCallback(m types.Message, exec registry.Exec) 
 	r.Lock()
 	r.handlers[m.Name()] = exec
 	r.Unlock()
+}
+
+func (r *Registry) ProcessScoreMap(m map[string]int) error {
+	fmt.Println("Process score map")
+	// call the registered notification handlers, with a timeout
+	done := r.notifMap.ExecAll(m)
+
+	select {
+	case <-done:
+	case <-time.After(time.Second * 20):
+		return xerrors.Errorf("notification handlers took too long")
+	}
+	return nil
 }
 
 // ProcessPacket implements registry.Registry.
@@ -122,6 +138,11 @@ func (r *Registry) RegisterNotify(exec registry.Exec) {
 	r.notif.Add(exec)
 }
 
+// RegisterNotifyScore implements registry.Registry.
+func (r *Registry) RegisterNotifyScore(exec registry.ExecMap) {
+	r.notifMap.Add(exec)
+}
+
 // GetMessages implements registry.Registry.
 func (r *Registry) GetMessages() []types.Message {
 	return r.msgs.get()
@@ -133,7 +154,20 @@ type notifications struct {
 	h []registry.Exec
 }
 
+type notificationsMap struct {
+	sync.Mutex
+
+	h []registry.ExecMap
+}
+
 func (h *notifications) Add(exec registry.Exec) {
+	h.Lock()
+	defer h.Unlock()
+
+	h.h = append(h.h, exec)
+}
+
+func (h *notificationsMap) Add(exec registry.ExecMap) {
 	h.Lock()
 	defer h.Unlock()
 
@@ -151,6 +185,23 @@ func (h *notifications) ExecAll(msg types.Message, pkt transport.Packet) <-chan 
 
 		for _, handler := range h.h {
 			_ = handler(msg, pkt)
+		}
+
+		close(done)
+	}()
+
+	return done
+}
+
+func (h *notificationsMap) ExecAll(m map[string]int) <-chan struct{} {
+	done := make(chan struct{})
+
+	go func() {
+		h.Lock()
+		defer h.Unlock()
+
+		for _, handler := range h.h {
+			_ = handler(m)
 		}
 
 		close(done)

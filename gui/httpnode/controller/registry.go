@@ -36,10 +36,28 @@ func (reg registryctrl) MessagesHandler() http.HandlerFunc {
 }
 
 func (reg registryctrl) PktNotifyHandler() http.HandlerFunc {
+	fmt.Println("pktpass")
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			reg.pktNotifyGet(w, r)
+		case http.MethodOptions:
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Headers", "*")
+			return
+		default:
+			http.Error(w, "forbidden method", http.StatusMethodNotAllowed)
+			return
+		}
+	}
+}
+
+func (reg registryctrl) MapNotifyHandler() http.HandlerFunc {
+	fmt.Println("JE passe")
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			reg.mapNotifyGet(w, r)
 		case http.MethodOptions:
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			w.Header().Set("Access-Control-Allow-Headers", "*")
@@ -100,6 +118,42 @@ func (reg registryctrl) pktNotifyGet(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "failed to marshal pkt: "+err.Error(), http.StatusInternalServerError)
 			}
 
+			fmt.Fprintf(w, "data: %s\n\n", buf)
+			flusher.Flush()
+
+		case <-r.Context().Done():
+			return
+		}
+	}
+}
+
+func (reg registryctrl) mapNotifyGet(w http.ResponseWriter, r *http.Request) {
+	flusher, _ := w.(http.Flusher)
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	msgScoreMap := make(chan map[string]int, 100)
+
+	reg.registry.RegisterNotifyScore(func(m map[string]int) error {
+		msgScoreMap <- m
+		fmt.Println("AAAA")
+		fmt.Println(m)
+		fmt.Println("BBBB")
+		return nil
+	})
+	for {
+		select {
+		case m := <-msgScoreMap:
+			buf, err := json.Marshal(&m)
+			if err != nil {
+				http.Error(w, "failed to marshal map: "+err.Error(), http.StatusInternalServerError)
+			}
+
+			fmt.Println("LLLLLLLLLL")
+			fmt.Println(m)
 			fmt.Fprintf(w, "data: %s\n\n", buf)
 			flusher.Flush()
 

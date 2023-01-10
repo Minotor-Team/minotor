@@ -646,6 +646,9 @@ func (pH *paxosLikeHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *nod
 			pH.step++
 
 			pH.clearInstance(n.conf)
+
+			// process the map so that every node get the updated value in real time
+			n.reg.ProcessScoreMap(n.messagesScore.messageScore)
 		}
 	}
 

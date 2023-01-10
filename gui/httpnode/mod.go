@@ -78,7 +78,6 @@ func NewHTTPNode(node peer.Peer, conf peer.Configuration) Proxy {
 	mux.Handle("/messaging/broadcast", http.HandlerFunc(messagingctrl.BroadcastHandler()))
 	mux.Handle("/messaging/like", http.HandlerFunc(messagingctrl.LikeHandler()))
 	mux.Handle("/messaging/dislike", http.HandlerFunc(messagingctrl.DisLikeHandler()))
-	// mux.Handle("/messaging/score", http.HandlerFunc(messagingctrl.ScoreHandler()))
 
 	mux.Handle("/socket/ins", http.HandlerFunc(socketctrl.InsHandler()))
 	mux.Handle("/socket/outs", http.HandlerFunc(socketctrl.OutsHandler()))
@@ -88,6 +87,7 @@ func NewHTTPNode(node peer.Peer, conf peer.Configuration) Proxy {
 	mux.Handle("/registry/messages", http.HandlerFunc(registryctrl.MessagesHandler()))
 	// shouldn't be used in tests, as SSE can be flaky to use.
 	mux.Handle("/registry/pktnotify", http.HandlerFunc(registryctrl.PktNotifyHandler()))
+	mux.Handle("/registry/score", http.HandlerFunc(registryctrl.MapNotifyHandler()))
 
 	mux.Handle("/service/stop", http.HandlerFunc(servicectrl.ServiceStopHandler()))
 

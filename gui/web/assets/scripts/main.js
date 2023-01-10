@@ -232,7 +232,7 @@ class Reputation extends BaseElement {
     async update(elID) {
         const proxyAddressElement = document.querySelector('td[data-peerinfo-target="peerAddr"]');
         const proxyAddressText = proxyAddressElement.textContent;
-        const addr = proxyAddressText + "/messaging/score";
+        const addr = proxyAddressText + "/registry/score";
 
         try {
             const resp = await this.fetch(addr);
@@ -462,13 +462,34 @@ class Packets extends BaseElement {
         const addr = this.peerInfo.getAPIURL("/registry/pktnotify");
         const newPackets = new EventSource(addr);
 
+
         newPackets.onmessage = this.packetMessage.bind(this);
         newPackets.onerror = this.packetError.bind(this);
 
         this.holderTarget.addEventListener("scroll", this.packetsScroll.bind(this));
+
+        const addr2 = this.peerInfo.getAPIURL("/registry/score");
+        const newMap = new EventSource(addr2);
+        newMap.onmessage = (event) => {
+            const map = JSON.parse(event.data);
+            this.mapMessage(map);
+        }
+    }
+
+    mapMessage(map) {
+        console.log("Map")
+        console.log(typeof (map))
+        for (const [msgID, score] of Object.entries(map)) {
+            const elem = document.getElementById('score' + msgID)
+            if (elem != null) {
+                elem.innerText = score;
+                console.log(`${msgID}: ${score}`);
+            }
+        }
     }
 
     packetMessage(e) {
+        console.log("PKT")
         const pkt = JSON.parse(e.data);
         if (pkt.Msg.Type == "chat") {
             const date = new Date(pkt.Header.Timestamp / 1000000);
@@ -481,39 +502,6 @@ class Packets extends BaseElement {
                 el.classList.add("received");
             }
 
-            // server
-            // let ws;
-
-            // function init() {
-            //     if (ws) {
-            //         ws.onerror = ws.onopen = ws.onclose = null;
-            //         ws.close();
-            //     }
-
-            //     ws = new WebSocket('ws://localhost:6969');
-            //     ws.onopen = () => {
-            //         console.log('Connection opened!');
-            //     }
-            //     ws.onmessage = (event) => {
-            //         event.data.text().then((text) => {
-            //             const data = JSON.parse(text);
-            //             showLikes(data[0], data[1], data[2], data[3]);
-            //         });
-            //     }
-            //     ws.onclose = function () {
-            //         ws = null;
-            //     }
-            // }
-
-            // init();
-
-            // ------------ end server ------------ 
-
-            function showLikes(nbLikes, nbDisLikes, likeValueID, dislikeValueID, scoreID) {
-                document.getElementById(likeValueID).innerText = nbLikes;
-                document.getElementById(dislikeValueID).innerText = nbDisLikes;
-                document.getElementById(scoreID).innerText = nbLikes - nbDisLikes;
-            }
             function handleLikeClick() {
                 const likeElem = document.getElementById('val' + likeButt.id)
                 let currLikesNb = likeElem.innerText
@@ -523,10 +511,7 @@ class Packets extends BaseElement {
                 const dislikeButtID = likeButt.id.replace(/0/, "1")
                 const currDisLikesNb = document.getElementById('val' + dislikeButtID).innerText
                 const likeDislikes = Array.of(currLikesNb, currDisLikesNb, 'val' + likeButt.id, 'val' + dislikeButtID);
-                // ws.send(JSON.stringify(likeDislikes));
                 const scoreID = 'score' + el.id;
-                // showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3], scoreID);
-                // likeButt.removeEventListener('click', handleLikeClick);
 
                 // send Like Msg to container id (IP of the node who created the message)
                 // use the like button id to identify the message ID 
@@ -544,10 +529,7 @@ class Packets extends BaseElement {
                 const likeButtID = dislikeButt.id.replace(/1/, "0")
                 const currLikesNb = document.getElementById('val' + likeButtID).innerText
                 const likeDislikes = Array.of(currLikesNb, currDisLikesNb, 'val' + likeButtID, 'val' + dislikeButt.id);
-                // ws.send(JSON.stringify(likeDislikes));
                 const scoreID = 'score' + el.id;
-                // showLikes(likeDislikes[0], likeDislikes[1], likeDislikes[2], likeDislikes[3], scoreID);
-                // dislikeButt.removeEventListener('click', handleDisLikeClick);
 
                 // send DisLike Msg to container id (IP of the node who created the message)
                 const reputation = new Reputation();

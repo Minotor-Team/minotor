@@ -19,6 +19,10 @@ func (n *node) InitReputationCheck(likerID string, value int, msgSender string, 
 		return nil, xerrors.Errorf("Wrong value, should be either +1 or -1 : %v", value)
 	}
 	err := n.LikeConsensus(likerID, value, msgSender, msgID)
+	if err == nil {
+		fmt.Println("PROCESS")
+		n.reg.ProcessScoreMap(n.messagesScore.messageScore)
+	}
 	return n.messagesScore.messageScore, err
 }
 

@@ -36,6 +36,11 @@ func (r *Registry) ProcessPacket(pkt transport.Packet) error {
 	panic("not supported")
 }
 
+// ProcessScoreMap implements registry.Registry.
+func (r *Registry) ProcessScoreMap(m map[string]int) error {
+	panic("not supported")
+}
+
 // MarshalMessage implements registry.Registry.
 func (r *Registry) MarshalMessage(types.Message) (transport.Message, error) {
 	panic("not supported")
@@ -48,6 +53,11 @@ func (r *Registry) UnmarshalMessage(*transport.Message, types.Message) error {
 
 // RegisterNotify implements registry.Registry.
 func (r *Registry) RegisterNotify(registry.Exec) {
+	panic("not supported")
+}
+
+// RegisterNotifyScore implements registry.Registry.
+func (r *Registry) RegisterNotifyScore(registry.ExecMap) {
 	panic("not supported")
 }
 

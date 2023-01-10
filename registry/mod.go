@@ -16,6 +16,9 @@ type Registry interface {
 	// ProcessPacket executes the registered callback based on the pkt.Message.
 	ProcessPacket(pkt transport.Packet) error
 
+	// ProcessScoreMap executes the registered callback based on the pkt.Message.
+	ProcessScoreMap(messagesScore map[string]int) error
+
 	// MarshalMessage transforms the message to a transport.Message. The message
 	// MUST be a pointer.
 	MarshalMessage(types.Message) (transport.Message, error)
@@ -29,10 +32,17 @@ type Registry interface {
 	// account.
 	RegisterNotify(Exec)
 
+	// RegisterNotifyScore registers an Exec function that will be called each time
+	// ProcessScoreMap is called. The return error of Exec is not taken into
+	// account.
+	RegisterNotifyScore(ExecMap)
+
 	// GetMessages must returns all the messages processed so far with the
 	// ProcessPacket function.
 	GetMessages() []types.Message
 }
+
+type ExecMap func(m map[string]int) error
 
 // Exec is the type of function executed as a handler on a message.
 type Exec func(types.Message, transport.Packet) error
