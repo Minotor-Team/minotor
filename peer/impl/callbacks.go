@@ -1,7 +1,6 @@
 package impl
 
 import (
-	"fmt"
 	"math/rand"
 	"regexp"
 	"strconv"
@@ -647,13 +646,6 @@ func (pH *paxosLikeHandler) respondToAccepLike(msg types.PaxosAcceptLike, n *nod
 			pH.step++
 
 			pH.clearInstance(n.conf)
-
-			fmt.Println("update")
-			fmt.Println(n.messagesScore.messageScore)
-			store.ForEach(func(key string, val []byte) bool {
-				fmt.Printf("key: %s, value: %s\n", key, string(val))
-				return true
-			})
 		}
 	}
 
