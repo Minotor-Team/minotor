@@ -19,8 +19,9 @@ const running = true
 const idle = false
 
 // initialises paxosHandler
-func newPaxosHandler(conf peer.Configuration) *paxosHandler {
+func newPaxosHandler(conf peer.Configuration, tp types.PaxosType) *paxosHandler {
 	return &paxosHandler{
+		tp:              tp,
 		running:         idle,
 		step:            initValue,
 		maxID:           initValue,
@@ -45,6 +46,7 @@ func newPaxosHandler(conf peer.Configuration) *paxosHandler {
 
 type paxosHandler struct {
 	sync.RWMutex
+	tp              types.PaxosType
 	running         bool
 	step            uint
 	maxID           uint
@@ -106,6 +108,14 @@ func (pH *paxosHandler) clearInstance(conf peer.Configuration) {
 	pH.instanceChannel = make(chan struct{})
 }
 
+// gets handler type
+func (pH *paxosHandler) getType() types.PaxosType {
+	pH.RLock()
+	defer pH.RUnlock()
+
+	return pH.tp
+}
+
 // gets current step
 func (pH *paxosHandler) getStep() uint {
 	pH.RLock()
@@ -147,12 +157,12 @@ func (pH *paxosHandler) nextID() {
 }
 
 // creates a prepare message with given source and init paramaters
-func (pH *paxosHandler) createPrepareMessage(source string, value types.PaxosValue, tp types.PaxosType) types.PaxosPrepareMessage {
+func (pH *paxosHandler) createPrepareMessage(source string, value types.PaxosValue) types.PaxosPrepareMessage {
 	pH.Lock()
 	defer pH.Unlock()
 
 	paxosPrepareMsg := types.PaxosPrepareMessage{
-		Type:   tp,
+		Type:   pH.tp,
 		Step:   pH.step,
 		ID:     pH.paxosID,
 		Source: source,
@@ -168,12 +178,12 @@ func (pH *paxosHandler) createPrepareMessage(source string, value types.PaxosVal
 }
 
 // creates propose message with given value
-func (pH *paxosHandler) createProposeMessage(value types.PaxosValue, tp types.PaxosType) types.PaxosProposeMessage {
+func (pH *paxosHandler) createProposeMessage(value types.PaxosValue) types.PaxosProposeMessage {
 	pH.RLock()
 	defer pH.RUnlock()
 
 	paxosProposeMsg := types.PaxosProposeMessage{
-		Type:  tp,
+		Type:  pH.tp,
 		Step:  pH.step,
 		ID:    pH.paxosID,
 		Value: value,
@@ -204,7 +214,7 @@ func (pH *paxosHandler) respondToPrepareMsg(msg types.PaxosPrepareMessage, conf 
 	// create promise message
 	var acceptedValue *types.PaxosValue
 
-	switch msg.Type {
+	switch pH.tp {
 	case types.Tag:
 		if (pH.acceptedValue != types.PaxosValue{}) {
 			acceptedValue = &pH.acceptedValue
@@ -218,7 +228,7 @@ func (pH *paxosHandler) respondToPrepareMsg(msg types.PaxosPrepareMessage, conf 
 	}
 
 	paxosPromiseMsg := types.PaxosPromiseMessage{
-		Type:          msg.Type,
+		Type:          pH.tp,
 		Step:          pH.step,
 		ID:            msg.ID,
 		AcceptedID:    pH.acceptedID,
@@ -253,7 +263,7 @@ func (pH *paxosHandler) respondToProposeMsg(msg types.PaxosProposeMessage) *type
 
 	// create accept message
 	paxosAcceptMsg := types.PaxosAcceptMessage{
-		Type:  msg.Type,
+		Type:  pH.tp,
 		Step:  pH.step,
 		ID:    msg.ID,
 		Value: msg.Value,
@@ -263,7 +273,7 @@ func (pH *paxosHandler) respondToProposeMsg(msg types.PaxosProposeMessage) *type
 }
 
 // responds to promise message by checking if threshold has been reached
-func (pH *paxosHandler) respondToPromiseMsg(msg types.PaxosPromiseMessage) {
+func (pH *paxosHandler) respondToPromiseMsg(msg types.PaxosPromiseMessage, n *node) {
 	pH.Lock()
 	defer pH.Unlock()
 
@@ -286,8 +296,23 @@ func (pH *paxosHandler) respondToPromiseMsg(msg types.PaxosPromiseMessage) {
 		pH.bestValue = *msg.AcceptedValue
 	}
 
+	var threshold = uint(0)
+	switch pH.tp {
+	case types.Tag:
+		threshold = pH.threshold
+	case types.Identity:
+		storeLen := n.conf.Storage.GetIdentityStore().Len()
+		if storeLen == 0 {
+			if threshold = 1; len(n.routingTable.getRoutingTable()) > 1 {
+				threshold = 2
+			}
+		} else {
+			threshold = uint(n.conf.PaxosThreshold(uint(storeLen)))
+		}
+	}
+
 	// if threshold is reached, init phase 2 and return good value to promise channel
-	if pH.promises >= pH.threshold {
+	if pH.promises >= threshold {
 		pH.currentPhase = paxosPhase2
 		if pH.bestID != 0 {
 			pH.promiseChannel <- pH.bestValue
@@ -312,21 +337,29 @@ func (pH *paxosHandler) respondToAcceptMsg(msg types.PaxosAcceptMessage, n *node
 
 	pH.acceptedValues[msg.Value]++
 
+	var threshold = uint(0)
+	switch pH.tp {
+	case types.Tag:
+		threshold = pH.threshold
+	case types.Identity:
+		threshold = uint(n.conf.PaxosThreshold(uint(n.conf.Storage.GetIdentityStore().Len())))
+	}
+
 	// if threshold has been reached, consensus has been reached
-	if pH.acceptedValues[msg.Value] >= pH.threshold {
+	if pH.acceptedValues[msg.Value] >= threshold {
 
 		// build blockchain block
 		block := pH.buildBlock(msg, n.conf)
 
 		// store block in store
-		err := pH.storeBlock(msg.Type, block, n.conf)
+		err := pH.storeBlock(block, n.conf)
 		if err != nil {
 			return nil, err
 		}
 
 		// create TLC message
 		TLCMsg := types.TLCMessage{
-			Type:  msg.Type,
+			Type:  pH.tp,
 			Step:  pH.step,
 			Block: block,
 		}
@@ -363,10 +396,18 @@ func (pH *paxosHandler) respondToTLCMsg(msg types.TLCMessage, n *node) (bool, er
 	if msg.Step == pH.step {
 		pH.running = running
 
+		var threshold = uint(0)
+		switch pH.tp {
+		case types.Tag:
+			threshold = pH.threshold
+		case types.Identity:
+			threshold = uint(n.conf.PaxosThreshold(uint(n.conf.Storage.GetIdentityStore().Len())))
+		}
+
 		// if threshold has been reached, consensus has been reached
-		if uint(len(pH.TLCMap[pH.step])) >= pH.threshold {
+		if uint(len(pH.TLCMap[pH.step])) >= threshold {
 			// store block in store
-			err := pH.storeBlock(msg.Type, msg.Block, n.conf)
+			err := pH.storeBlock(msg.Block, n.conf)
 
 			// set final value
 			pH.finalValue = msg.Block.Value
@@ -397,7 +438,7 @@ func (pH *paxosHandler) buildBlock(msg types.PaxosAcceptMessage, conf peer.Confi
 
 	var store storage.Store
 
-	switch msg.Type {
+	switch pH.tp {
 	case types.Tag:
 		store = conf.Storage.GetBlockchainStore()
 	case types.Identity:
@@ -434,17 +475,17 @@ func (pH *paxosHandler) buildBlock(msg types.PaxosAcceptMessage, conf peer.Confi
 }
 
 // stores block in store
-func (pH *paxosHandler) storeBlock(tp types.PaxosType, block types.BlockchainBlock, conf peer.Configuration) error {
+func (pH *paxosHandler) storeBlock(block types.BlockchainBlock, conf peer.Configuration) error {
 
 	var bStore storage.Store
 
-	switch tp {
+	switch pH.tp {
 	case types.Tag:
 		bStore = conf.Storage.GetBlockchainStore()
 	case types.Identity:
 		bStore = conf.Storage.GetBlockchainIdentityStore()
 	default:
-		return xerrors.Errorf("invalid type : %v", tp)
+		return xerrors.Errorf("invalid type : %v", pH.tp)
 	}
 
 	// compute key and block to store
@@ -463,13 +504,13 @@ func (pH *paxosHandler) storeBlock(tp types.PaxosType, block types.BlockchainBlo
 	// store filename and hash in naming store
 	var nStore storage.Store
 
-	switch tp {
+	switch pH.tp {
 	case types.Tag:
 		nStore = conf.Storage.GetNamingStore()
 	case types.Identity:
 		nStore = conf.Storage.GetIdentityStore()
 	default:
-		return xerrors.Errorf("invalid type : %v", tp)
+		return xerrors.Errorf("invalid type : %v", pH.tp)
 	}
 	nStore.Set(block.Value.Filename, []byte(block.Value.Metahash))
 
@@ -478,12 +519,19 @@ func (pH *paxosHandler) storeBlock(tp types.PaxosType, block types.BlockchainBlo
 
 // check if consensus for higher steps have been reached
 func (pH *paxosHandler) catchUp(conf peer.Configuration) error {
+	var threshold = uint(0)
+	switch pH.tp {
+	case types.Tag:
+		threshold = pH.threshold
+	case types.Identity:
+		threshold = uint(conf.PaxosThreshold(uint(conf.Storage.GetIdentityStore().Len())))
+	}
 	// if threshold has been reached, consensus has been reached
-	for uint(len(pH.TLCMap[pH.step])) >= pH.threshold {
-		TLCMsg := pH.TLCMap[pH.step][pH.threshold-1]
+	for uint(len(pH.TLCMap[pH.step])) >= threshold {
+		TLCMsg := pH.TLCMap[pH.step][threshold-1]
 
 		// store block
-		err := pH.storeBlock(TLCMsg.Type, TLCMsg.Block, conf)
+		err := pH.storeBlock(TLCMsg.Block, conf)
 		if err != nil {
 			return err
 		}

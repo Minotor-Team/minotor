@@ -70,7 +70,7 @@ func NewHTTPNode(node peer.Peer, conf peer.Configuration) Proxy {
 	datasharingctrl := controller.NewDataSharing(node, &log)
 	blockchain := controller.NewBlockchain(conf, &log)
 
-	mux.Handle("/identity/check", http.HandlerFunc(identityverifierctrl.IdentityCheckHandler()))
+	mux.Handle("/verification/identity", http.HandlerFunc(identityverifierctrl.VerificationHandler()))
 
 	mux.Handle("/messaging/peers", http.HandlerFunc(messagingctrl.PeerHandler()))
 	mux.Handle("/messaging/routing", http.HandlerFunc(messagingctrl.RoutingHandler()))

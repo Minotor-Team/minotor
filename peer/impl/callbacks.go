@@ -496,7 +496,7 @@ func (n *node) ExecPaxosPromiseMessage(msg types.Message, pkt transport.Packet) 
 	}
 
 	// process promise message
-	handler.respondToPromiseMsg(*paxosPromiseMsg)
+	handler.respondToPromiseMsg(*paxosPromiseMsg, n)
 
 	return nil
 }

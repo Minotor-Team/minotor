@@ -13,6 +13,7 @@ import (
 type Peer interface {
 	Service
 	IdentityVerifier
+	SybilVerifier
 	Messaging
 	DataSharing
 	User

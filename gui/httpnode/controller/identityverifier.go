@@ -23,7 +23,7 @@ type identityverifier struct {
 	log  *zerolog.Logger
 }
 
-func (id identityverifier) IdentityCheckHandler() http.HandlerFunc {
+func (id identityverifier) VerificationHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:

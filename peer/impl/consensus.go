@@ -32,7 +32,7 @@ func (n *node) Consensus(key string, value string, tp types.PaxosType) error {
 	}
 
 	// if only one node set key/value
-	if n.conf.TotalPeers <= 1 {
+	if n.conf.TotalPeers <= 1 && tp == types.Tag {
 		store.Set(key, []byte(value))
 		return nil
 	}
@@ -62,13 +62,13 @@ func (n *node) Consensus(key string, value string, tp types.PaxosType) error {
 		}
 
 		// launch paxos phase 1
-		proposedValue, err := n.PaxosPhase1(key, value, tp)
+		proposedValue, err := n.PaxosPhase1(key, value, handler)
 		if (err != nil || *proposedValue == types.PaxosValue{}) {
 			return err
 		}
 
 		// launch paxos phase 2
-		ret, err := n.PaxosPhase2(*proposedValue, key, value, tp, store)
+		ret, err := n.PaxosPhase2(*proposedValue, key, value, handler, store)
 		if err != nil || ret {
 			return err
 		}
@@ -76,20 +76,9 @@ func (n *node) Consensus(key string, value string, tp types.PaxosType) error {
 }
 
 // starts paxos phase 1
-func (n *node) PaxosPhase1(key string, value string, tp types.PaxosType) (*types.PaxosValue, error) {
+func (n *node) PaxosPhase1(key string, value string, handler *paxosHandler) (*types.PaxosValue, error) {
 	for {
 		myAddr := n.soc.GetAddress()
-
-		var handler *paxosHandler
-
-		switch tp {
-		case types.Tag:
-			handler = n.tagHandler
-		case types.Identity:
-			handler = n.identityHandler
-		default:
-			return nil, xerrors.Errorf("invalid type : %v", tp)
-		}
 
 		// broadcast pepare message with proposed value
 		proposedValue := types.PaxosValue{
@@ -98,7 +87,7 @@ func (n *node) PaxosPhase1(key string, value string, tp types.PaxosType) (*types
 			Metahash: value,
 		}
 
-		paxosPrepareMsg := handler.createPrepareMessage(myAddr, proposedValue, tp)
+		paxosPrepareMsg := handler.createPrepareMessage(myAddr, proposedValue)
 		promiseChannel := handler.getPromiseChannel()
 
 		transportPrepareMsg, err := n.reg.MarshalMessage(&paxosPrepareMsg)
@@ -128,20 +117,10 @@ func (n *node) PaxosPhase1(key string, value string, tp types.PaxosType) (*types
 }
 
 // starts paxos phase 2
-func (n *node) PaxosPhase2(paxosValue types.PaxosValue, key string, value string, tp types.PaxosType, store storage.Store) (bool, error) {
-	var handler *paxosHandler
-
-	switch tp {
-	case types.Tag:
-		handler = n.tagHandler
-	case types.Identity:
-		handler = n.identityHandler
-	default:
-		return true, xerrors.Errorf("invalid type : %v", tp)
-	}
+func (n *node) PaxosPhase2(paxosValue types.PaxosValue, key string, value string, handler *paxosHandler, store storage.Store) (bool, error) {
 
 	// broadcast propose message with given value
-	paxosProposeMsg := handler.createProposeMessage(paxosValue, tp)
+	paxosProposeMsg := handler.createProposeMessage(paxosValue)
 	valueChannel := handler.getValueChannel()
 
 	transportProposeMsg, err := n.reg.MarshalMessage(&paxosProposeMsg)
@@ -164,7 +143,7 @@ func (n *node) PaxosPhase2(paxosValue types.PaxosValue, key string, value string
 			return true, nil
 		}
 		// else start again with consensus function
-		return true, n.Consensus(key, value, tp)
+		return true, n.Consensus(key, value, handler.getType())
 	// if ticker is triggered
 	case <-ticker.C:
 		// check anyway if final value is not nil (refer previous case)
@@ -173,7 +152,7 @@ func (n *node) PaxosPhase2(paxosValue types.PaxosValue, key string, value string
 			if finalValue.Filename == key && finalValue.Metahash == value {
 				return true, nil
 			}
-			return true, n.Consensus(key, value, tp)
+			return true, n.Consensus(key, value, handler.getType())
 		}
 		// increment paxos ID and restart loop
 		handler.nextID()

@@ -23,6 +23,7 @@ const main = function () {
     application.register("dataSharing", DataSharing);
     application.register("search", Search);
     application.register("naming", Naming);
+    application.register("verification", Verification);
 
     initCollapsible();
 };
@@ -137,7 +138,7 @@ class Flash extends Stimulus.Controller {
 
 class PeerInfo extends Stimulus.Controller {
     static get targets() {
-        return ["name", "email", "phone", "peerAddr", "socketAddr"];
+        return ["name", "email", "phone", "peerAddr", "socketAddr", "approval"];
     }
 
     async initialize() {
@@ -150,10 +151,12 @@ class PeerInfo extends Stimulus.Controller {
         this.email = email;
         this.phone = phone;
         this.endpoint = endpoint;
+        this.approval = "No";
         this.nameTarget.innerText = this.name;
         this.emailTarget.innerText = this.email;
         this.phoneTarget.innerText = this.phone;
         this.peerAddrTarget.innerText = this.endpoint;
+        this.approvalTarget.innerText = this.approval;
 
         const addr = this.endpoint + "/socket/address";
 
@@ -268,7 +271,6 @@ class Routing extends BaseElement {
 
     initialize() {
         this.update();
-        this.initIdentityCheck();
     }
 
     async update() {
@@ -306,33 +308,6 @@ class Routing extends BaseElement {
             this.graphvizTarget.appendChild(element);
         } catch (e) {
             this.flash.printError("Failed to display routing: " + e);
-        }
-    }
-
-    async initIdentityCheck() {
-        const addr = this.peerInfo.getAPIURL("/identity/check");
-
-        const info = {
-            "Name": this.peerInfo.name,
-            "Email": this.peerInfo.email,
-            "Phone": this.peerInfo.phone
-        };
-
-        const fetchArgs = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(info)
-        };
-
-        try {
-            await this.fetch(addr, fetchArgs);
-
-            this.flash.printSuccess("Welcome " + this.peerInfo.name + "! Your identity will be verified soon.");
-
-        } catch (e) {
-            this.flash.printError("failed to send identity check: " + e);
         }
     }
 
@@ -862,6 +837,39 @@ class Naming extends BaseElement {
             this.flash.printSuccess("tagging done");
         } catch (e) {
             this.flash.printError("failed to tag filename: " + e);
+        }
+    }
+}
+
+class Verification extends BaseElement {
+    static get targets() {
+        return ["approval"];
+    }
+
+    async approval() {
+        const addr = this.peerInfo.getAPIURL("/verification/identity");
+
+        const info = {
+            "Name": this.peerInfo.name,
+            "Email": this.peerInfo.email,
+            "Phone": this.peerInfo.phone
+        };
+
+        const fetchArgs = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(info)
+        };
+
+        try {
+            this.flash.printSuccess("Your identity will be verified soon.");
+            await this.fetch(addr, fetchArgs);
+            this.peerInfo.approvalTarget.innerText = "Yes";
+            this.flash.printSuccess("Welcome " + this.peerInfo.name + "! Your identity has been successfully verified.");
+        } catch (e) {
+            this.flash.printError("failed to send identity check: " + e);
         }
     }
 }

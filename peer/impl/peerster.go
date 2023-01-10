@@ -49,8 +49,8 @@ func NewPeersterNode(conf peer.Configuration) *PeersterNode {
 		requestsHandler: newChannelsHandler(),
 		store:           newStore(),
 		searchsHandler:  newChannelsHandler(),
-		tagHandler:      newPaxosHandler(conf),
-		identityHandler: newPaxosHandler(conf),
+		tagHandler:      newPaxosHandler(conf, types.Tag),
+		identityHandler: newPaxosHandler(conf, types.Identity),
 	}
 
 	myAddr := node.soc.GetAddress()
