@@ -29,12 +29,12 @@ func (m RouteMessage) HTML() string {
 
 // NewEmpty implements types.Message.
 func (m SuspectRouteProtocolDone) NewEmpty() Message {
-	return &RouteMessage{}
+	return &SuspectRouteProtocolDone{}
 }
 
 // Name implements types.Message.
 func (SuspectRouteProtocolDone) Name() string {
-	return "route"
+	return "suspectrouteprotocoldone"
 }
 
 // String implements types.Message.
@@ -51,12 +51,12 @@ func (m SuspectRouteProtocolDone) HTML() string {
 
 // NewEmpty implements types.Message.
 func (m VerifierRegistrationQuery) NewEmpty() Message {
-	return &RouteMessage{}
+	return &VerifierRegistrationQuery{}
 }
 
 // Name implements types.Message.
 func (VerifierRegistrationQuery) Name() string {
-	return "route"
+	return "verifierRegistrationQuery"
 }
 
 // String implements types.Message.
@@ -73,12 +73,12 @@ func (m VerifierRegistrationQuery) HTML() string {
 
 // NewEmpty implements types.Message.
 func (m VerifierRegistrationAnswer) NewEmpty() Message {
-	return &RouteMessage{}
+	return &VerifierRegistrationAnswer{}
 }
 
 // Name implements types.Message.
 func (VerifierRegistrationAnswer) Name() string {
-	return "route"
+	return "verifierRegistrationAnswer"
 }
 
 // String implements types.Message.
