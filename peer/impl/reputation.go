@@ -20,7 +20,6 @@ func (n *node) InitReputationCheck(likerID string, value int, msgSender string, 
 	}
 	err := n.LikeConsensus(likerID, value, msgSender, msgID)
 	if err == nil {
-		fmt.Println("PROCESS")
 		n.reg.ProcessScoreMap(n.messagesScore.messageScore)
 	}
 	return n.messagesScore.messageScore, err

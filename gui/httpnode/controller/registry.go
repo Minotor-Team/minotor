@@ -36,7 +36,6 @@ func (reg registryctrl) MessagesHandler() http.HandlerFunc {
 }
 
 func (reg registryctrl) PktNotifyHandler() http.HandlerFunc {
-	fmt.Println("pktpass")
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
@@ -53,7 +52,6 @@ func (reg registryctrl) PktNotifyHandler() http.HandlerFunc {
 }
 
 func (reg registryctrl) MapNotifyHandler() http.HandlerFunc {
-	fmt.Println("JE passe")
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
@@ -139,9 +137,6 @@ func (reg registryctrl) mapNotifyGet(w http.ResponseWriter, r *http.Request) {
 
 	reg.registry.RegisterNotifyScore(func(m map[string]int) error {
 		msgScoreMap <- m
-		fmt.Println("AAAA")
-		fmt.Println(m)
-		fmt.Println("BBBB")
 		return nil
 	})
 	for {
@@ -152,8 +147,6 @@ func (reg registryctrl) mapNotifyGet(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "failed to marshal map: "+err.Error(), http.StatusInternalServerError)
 			}
 
-			fmt.Println("LLLLLLLLLL")
-			fmt.Println(m)
 			fmt.Fprintf(w, "data: %s\n\n", buf)
 			flusher.Flush()
 

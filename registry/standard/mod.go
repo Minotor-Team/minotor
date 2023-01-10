@@ -2,7 +2,6 @@ package standard
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"sync"
 	"time"
@@ -45,7 +44,6 @@ func (r *Registry) RegisterMessageCallback(m types.Message, exec registry.Exec) 
 }
 
 func (r *Registry) ProcessScoreMap(m map[string]int) error {
-	fmt.Println("Process score map")
 	// call the registered notification handlers, with a timeout
 	done := r.notifMap.ExecAll(m)
 
