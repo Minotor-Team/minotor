@@ -33,14 +33,14 @@ type SuspectRouteProtocolDone struct {
 // A message to query a node if it has registered the suspect under
 // the given tail.
 type VerifierRegistrationQuery struct {
-	Suspect string
-	Tail    Edge
+	InstanceNumber uint
+	Suspect        string
+	Tail           Edge
 }
 
 type VerifierRegistrationAnswer struct {
-	Suspect      string
-	Tail         Edge
-	IsRegistered bool
+	InstanceNumber uint
+	IsRegistered   bool
 }
 
 const EdgeSep string = "->"

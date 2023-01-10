@@ -201,3 +201,7 @@ func (s *Set[T]) Values() datastructures.Set[T] {
 	res := datastructures.Set[T](s.underlyingMap.Entries())
 	return res
 }
+
+func (s *Set[T]) Size() uint {
+	return uint(len(s.underlyingMap.Entries()))
+}

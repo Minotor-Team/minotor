@@ -97,17 +97,36 @@ type Configuration struct {
 	// The length of the route for the route protocol. It corresponds to the mixing time
 	// of the social network.
 	// Corresponds to the parameter w in the paper.
+	// In the theoric case, it should be such that w = w_0 * log(n), where w_0 is a constant
+	// and n is the number of nodes in the network.
 	RouteLength uint
 
 	// The number of routes to generate for each peer.
 	// Corresponds to the parameter r in the paper.
+	// In the theoric case, it should be such that r = r_0 * sqrt(m), where r_0 is a constant
+	// and m in the number of edges in the social network.
 	NumberRoutes uint
 
 	// The timeout for the route protocol.
+	// Default: 5s
 	RouteTimeout time.Duration
 
 	// The timeout for the registration query made by a verifier.
+	// Default: 1s
 	VerifierRegistrationTimeout time.Duration
+
+	// The number of undirected edges in the social graph. It corresponds to the total number of relations.
+	// Parameter m in the paper.
+	NumberSocialEdges uint
+
+	// The duration to wait before starting the first SybilLimit instance.
+	// Default: 0 (i.e., no instance is ever started)
+	SybilLimitFirstCheck time.Duration
+
+	// The time between two sybil limit checks.
+	// A value of 0 means that no other sybil limit instance will start.
+	// Default: 0
+	SybilLimitInterval time.Duration
 }
 
 // Backoff describes parameters for a backoff algorithm. The initial time must

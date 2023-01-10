@@ -152,6 +152,15 @@ type configTemplate struct {
 	paxosProposerRetry time.Duration
 
 	routeSeed int64
+
+	routeLength                 uint
+	numberRoutes                uint
+	routeTimeout                time.Duration
+	verifierRegistrationTimeout time.Duration
+	numberSocialEdges           uint
+
+	sybilLimitFirstCheck time.Duration
+	sybilLimitInterval   time.Duration
 }
 
 func newConfigTemplate() configTemplate {
@@ -186,16 +195,67 @@ func newConfigTemplate() configTemplate {
 		},
 		paxosID:            0,
 		paxosProposerRetry: time.Second * 5,
-		routeSeed:          0,
+
+		routeSeed:                   0,
+		numberRoutes:                0,
+		routeLength:                 0,
+		routeTimeout:                5 * time.Second,
+		verifierRegistrationTimeout: 1 * time.Second,
+		numberSocialEdges:           0,
+
+		sybilLimitFirstCheck: 0,
+		sybilLimitInterval:   0,
 	}
 }
 
 // Option is the type of option when creating a test node.
 type Option func(*configTemplate)
 
+func WithSybilLimitFirstCheck(time time.Duration) Option {
+	return func(ct *configTemplate) {
+		ct.sybilLimitFirstCheck = time
+	}
+}
+
+func WithSybilLimitInterval(time time.Duration) Option {
+	return func(ct *configTemplate) {
+		ct.sybilLimitInterval = time
+	}
+}
+
 func WithRouteSeed(seed int64) Option {
 	return func(ct *configTemplate) {
 		ct.routeSeed = seed
+	}
+}
+
+func WithRouteLength(length uint) Option {
+	return func(ct *configTemplate) {
+		ct.routeLength = length
+	}
+}
+
+func WithNumberRoutes(numRoutes uint) Option {
+	return func(ct *configTemplate) {
+		ct.numberRoutes = numRoutes
+	}
+}
+
+func WithRouteTimeout(timeout time.Duration) Option {
+	return func(ct *configTemplate) {
+		ct.routeTimeout = timeout
+	}
+}
+
+func WithVerifierRegistrationTimeout(timeout time.Duration) Option {
+	return func(ct *configTemplate) {
+		ct.verifierRegistrationTimeout = timeout
+	}
+}
+
+func WithNumberSocialEdges(num uint) Option {
+	return func(ct *configTemplate) {
+		ct.numberSocialEdges = num
 	}
 }
 
@@ -302,15 +362,8 @@ func WithPaxosProposerRetry(d time.Duration) Option {
 	}
 }
 
-// NewTestNode returns a new test node.
 func NewTestNode(t require.TestingT, f peer.Factory, trans transport.Transport,
 	addr string, opts ...Option) TestNode {
-	n, _ := NewTestNodeWithConfig(t, f, trans, addr, opts...)
-	return n
-}
-
-func NewTestNodeWithConfig(t require.TestingT, f peer.Factory, trans transport.Transport,
-	addr string, opts ...Option) (TestNode, peer.Configuration) {
 
 	template := newConfigTemplate()
 	for _, opt := range opts {
@@ -335,6 +388,12 @@ func NewTestNodeWithConfig(t require.TestingT, f peer.Factory, trans transport.T
 	config.PaxosThreshold = template.paxosThreshold
 	config.PaxosID = template.paxosID
 	config.PaxosProposerRetry = template.paxosProposerRetry
+	config.VerifierRegistrationTimeout = template.verifierRegistrationTimeout
+	config.RouteTimeout = template.routeTimeout
+	config.RouteLength = template.routeLength
+	config.NumberSocialEdges = template.numberSocialEdges
+	config.RouteSeed = template.routeSeed
+	config.NumberRoutes = template.numberRoutes
 
 	node := f(config)
 
@@ -352,7 +411,7 @@ func NewTestNodeWithConfig(t require.TestingT, f peer.Factory, trans transport.T
 		Peer:   node,
 		config: config,
 		socket: socket,
-	}, config
+	}
 }
 
 // TestNode defines a test node. It overides peer.Peer with additional functions

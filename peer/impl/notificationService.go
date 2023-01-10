@@ -26,6 +26,14 @@ func NewNotificationService[K comparable, V any]() peer.NotificationService[K, V
 	}
 }
 
+func (n *NotificationServiceImpl[K, V]) Close() {
+	n.lock.Lock()
+	defer n.lock.Unlock()
+	for _, ch := range n.channels {
+		close(*ch)
+	}
+}
+
 // Wait for the notification of the route with the given id.
 // Returns the tail of the route and true, if it succeeded within the timeout.
 // Returns false otherwise.

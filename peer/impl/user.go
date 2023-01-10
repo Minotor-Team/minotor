@@ -1,6 +1,8 @@
 package impl
 
 import (
+	"math"
+
 	"github.com/rs/xid"
 	"github.com/rs/zerolog/log"
 	"go.dedis.ch/cs438/datastructures"
@@ -17,10 +19,8 @@ type UserNode struct {
 	peer.SybilVerifier
 	*PeersterNode
 
-	followed concurrent.Set[string]
-
-	socialProfil peer.SocialProfil
-
+	followed     concurrent.Set[string]
+	socialProfil *peer.SocialProfilImpl
 	// SybilLimit protocol fields
 	routeManager    *RouteManager
 	suspectRouteID  rangedIndex
@@ -29,19 +29,29 @@ type UserNode struct {
 	// Tails sent by suspect waiting to be verified.
 	pendingSuspectTails chan pendingSuspect
 	processedSuspects   concurrent.Set[string]
-	verifier            Verifier
+	verifier            *Verifier
 }
 
 // Creates a new UserNode with a provided state.
 // To initialize a UserNode with a default state, use NewUserNode.
 func NewUserNode(conf peer.Configuration) *UserNode {
+	initialProcessedSusspects := concurrent.NewSet[string]()
+	initialProcessedSusspects.Add(conf.Socket.GetAddress())
+	socialProfil := peer.NewSocialProfil()
 	node := UserNode{
-		PeersterNode:    NewPeersterNode(conf),
-		followed:        concurrent.NewSet[string](),
-		routeManager:    NewRouteManager(conf.RouteSeed, peer.NewSocialProfilAdapter()),
-		suspectRouteID:  rangedIndex{low: conf.NumberRoutes, high: 2 * conf.NumberRoutes},
-		verifierRouteID: rangedIndex{low: 0, high: conf.NumberRoutes},
+		PeersterNode:        NewPeersterNode(conf),
+		followed:            concurrent.NewSet[string](),
+		socialProfil:        socialProfil,
+		routeManager:        NewRouteManager(conf.RouteSeed, socialProfil),
+		suspectRouteID:      *NewRangedIndex(conf.NumberRoutes, 2*conf.NumberRoutes),
+		verifierRouteID:     *NewRangedIndex(0, conf.NumberRoutes),
+		pendingSuspectTails: make(chan pendingSuspect, conf.NumberRoutes),
+		processedSuspects:   concurrent.NewSet[string](),
+		verifier:            NewVerifier(conf),
 	}
+	// Avoid auto processing.
+	node.processedSuspects.Add(conf.Socket.GetAddress())
+
 	conf.MessageRegistry.RegisterMessageCallback(types.FollowRequest{}, node.handleFollowRequest)
 
 	routeCallback := func(msg types.Message, pkt transport.Packet) error {
@@ -52,6 +62,25 @@ func NewUserNode(conf peer.Configuration) *UserNode {
 		return node.PropagateRandomRoute(v, pkt.Header.Source)
 	}
 	node.conf.MessageRegistry.RegisterMessageCallback(types.RouteMessage{}.NewEmpty(), routeCallback)
+
+	registrationRequestQueryCallback := func(msg types.Message, pkt transport.Packet) error {
+		v, ok := msg.(types.VerifierRegistrationQuery)
+		if !ok {
+			return xerrors.Errorf("%v is not a VerifierRegistrationQuery", msg)
+		}
+		return node.HandleVerfierRegistrationRequest(v, pkt)
+	}
+
+	registrationRequestAnswerCallback := func(msg types.Message, pkt transport.Packet) error {
+		v, ok := msg.(types.VerifierRegistrationAnswer)
+		if !ok {
+			return xerrors.Errorf("%v is not a VerifierRegistrationAnswer", msg)
+		}
+		return node.HandleVerfierRegistrationAnswer(v)
+	}
+
+	node.conf.MessageRegistry.RegisterMessageCallback(types.VerifierRegistrationQuery{}.NewEmpty(), registrationRequestQueryCallback)
+	node.conf.MessageRegistry.RegisterMessageCallback(types.VerifierRegistrationAnswer{}.NewEmpty(), registrationRequestAnswerCallback)
 	return &node
 }
 
@@ -92,6 +121,7 @@ func (n *UserNode) Follow(user string) error {
 		return xerrors.Errorf("error when following: %v", err)
 	}
 	n.followed.Add(user)
+	n.socialProfil.AddRelation(user)
 	log.Info().Msgf("%v: Follow %v", n.conf.Socket.GetAddress(), user)
 	return nil
 }
@@ -126,6 +156,8 @@ func (n *UserNode) handleFollowRequest(msgType types.Message, pkt transport.Pack
 
 type Tails = map[uint]types.Edge
 
+// A verifier holds all verifier-related data.
+// It is not thread-safe as main components are supposed to be used synchronously on a single thread.
 type Verifier struct {
 	tails map[uint]types.Edge
 	// A data structure to compute instersections efficiently.
@@ -134,27 +166,52 @@ type Verifier struct {
 
 	// A array of indices [0, r - 1] for the loads of the balance condition.
 	verifierBalanceLoads []uint
-	// Sum of the loads, i.e., (1 + sum(verifierBalanceLoads)) / r
-	totalLoads float64
+	// Sum of the loads, i.e., (1 + sum(verifierBalanceLoads))
+	totalLoads uint
 
-	// Corresponds to the parameter b in the paper.
-	// Dynamic upper bound to the number of sybil node accepted by attack edge.
-	sybilBound float64
+	numInstances    uint
+	logNumInstances uint
 
 	// A notification service for registration query
 	notificationService peer.NotificationService[uint, bool]
 
 	// A set of rejected suspects
-	rejectedSuspects datastructures.Set[string]
+	rejectedSuspects concurrent.Set[string]
+
+	acceptedSuspects concurrent.Set[string]
 }
 
-func NewVerifier(routeLength uint) *Verifier {
+// Compute the log2 of a uint. It applies a floor rounding.
+func Log2Uint(v uint) uint {
+	floatLog := math.Log2(float64(v))
+	uintLog := uint(floatLog)
+	return uintLog
+}
+
+func NewVerifier(conf peer.Configuration) *Verifier {
+	numInstances := conf.NumberRoutes
+	logNumInstances := Log2Uint(numInstances)
+
 	return &Verifier{
 		tails:                make(map[uint]types.Edge),
 		tailsSet:             make(map[types.Edge][]uint),
-		verifierBalanceLoads: make([]uint, routeLength),
+		verifierBalanceLoads: make([]uint, conf.RouteLength),
+		totalLoads:           0,
+		numInstances:         numInstances,
+		logNumInstances:      logNumInstances,
 		notificationService:  NewNotificationService[uint, bool](),
+		rejectedSuspects:     concurrent.NewSet[string](),
+		acceptedSuspects:     concurrent.NewSet[string](),
 	}
+}
+
+func (v *Verifier) Restart() {
+	v.notificationService.Close()
+	v.tails = make(map[uint]types.Edge)
+	v.tailsSet = make(map[types.Edge][]uint)
+	v.verifierBalanceLoads = make([]uint, v.logNumInstances)
+	v.totalLoads = 0
+	v.notificationService = NewNotificationService[uint, bool]()
 }
 
 func (v *Verifier) AddTails(tails Tails) {
@@ -183,13 +240,30 @@ func (v *Verifier) Intersection(tails Tails) Tails {
 }
 
 func (v *Verifier) Reject(suspect string) {
+	if v.acceptedSuspects.Contains(suspect) {
+		v.acceptedSuspects.Remove(suspect)
+	}
 	v.rejectedSuspects.Add(suspect)
+}
+
+func (v *Verifier) Accept(suspect string) {
+	if v.rejectedSuspects.Contains(suspect) {
+		v.rejectedSuspects.Remove(suspect)
+	}
+	v.acceptedSuspects.Add(suspect)
 }
 
 // Returns true if the value is below the sybil upper bound.
 func (v *Verifier) SatisfiesSybilBound(value uint) bool {
-	bound := uint(v.sybilBound)
+	bound := v.sybilBound()
 	return !(value > bound)
+}
+
+// Compute the sybil bound. It corresponds to the parameter b in the paper.
+func (v *Verifier) sybilBound() uint {
+	a := float64(1+v.totalLoads) / float64(v.numInstances)
+	b := math.Max(a, float64(v.logNumInstances))
+	return uint(b)
 }
 
 // Returns the instance number of the v-instance with the smallest load together with the value.

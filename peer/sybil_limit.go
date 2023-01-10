@@ -48,6 +48,8 @@ type SybilLimitProtocol interface {
 	// Describes the behavior when the verifier receives a SuspectRouteProtocolDone message.
 	HandleSuspectRouteProtocol(msg types.SuspectRouteProtocolDone, sender string) error
 
+	HandleVerfierRegistrationRequest(msg types.VerifierRegistrationQuery, sender string) error
+
 	// Protocol executed by a node to initiate a verification protocol.
 	// Must be used by a verifier that has received enough answer.
 	// It computes a list of nodes that are believed to be sybils.
@@ -76,10 +78,28 @@ type SocialProfilImpl struct {
 	indexMapping map[string]int
 }
 
-func NewSocialProfilAdapter() *SocialProfilImpl {
+func NewSocialProfil() *SocialProfilImpl {
 	return &SocialProfilImpl{
 		relations:    []string{},
 		indexMapping: make(map[string]int),
+	}
+}
+
+func (p *SocialProfilImpl) AddRelation(relation string) {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.relations = append(p.relations, relation)
+	p.indexMapping[relation] = len(p.relations) - 1
+}
+
+func (p *SocialProfilImpl) AddRelations(relations []string) {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	idx := len(p.relations)
+	for _, relation := range relations {
+		p.relations = append(p.relations, relation)
+		p.indexMapping[relation] = idx
+		idx++
 	}
 }
 

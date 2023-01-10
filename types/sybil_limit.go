@@ -61,7 +61,7 @@ func (VerifierRegistrationQuery) Name() string {
 
 // String implements types.Message.
 func (m VerifierRegistrationQuery) String() string {
-	return fmt.Sprintf("VerifierRegistrationQuery{Suspect: %s, Tail: %v}", m.Suspect, m.Tail)
+	return fmt.Sprintf("VerifierRegistrationQuery{InstanceNumber: %v,Suspect: %s, Tail: %v}", m.InstanceNumber, m.Suspect, m.Tail)
 }
 
 // HTML implements types.Message.
@@ -83,7 +83,7 @@ func (VerifierRegistrationAnswer) Name() string {
 
 // String implements types.Message.
 func (m VerifierRegistrationAnswer) String() string {
-	return fmt.Sprintf("VerifierRegistrationAnswer{Suspect: %s, Tail: %v, IsRegistered: %v}", m.Suspect, m.Tail, m.IsRegistered)
+	return fmt.Sprintf("VerifierRegistrationAnswer{InstanceNumber: %v, IsRegistered: %v}", m.InstanceNumber, m.IsRegistered)
 }
 
 // HTML implements types.Message.

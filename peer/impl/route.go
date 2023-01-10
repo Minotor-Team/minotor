@@ -20,7 +20,7 @@ type RouteNode struct {
 }
 
 type RouteManager struct {
-	RoutingTable *SybilRoutingTable
+	RoutingTable *SocialRoutingTable
 	// Stores the public key of a suspect at the tail
 	KeyStore concurrent.Map[string, string]
 	// Stores the tail of a route by id.
@@ -35,6 +35,14 @@ func NewRouteManager(routeSeed int64, socialProfile peer.SocialProfil) *RouteMan
 		TailStore:           concurrent.NewMap[uint, types.Edge](),
 		NotificationService: NewNotificationService[uint, string](),
 	}
+}
+
+func (r *RouteManager) Reset() {
+	r.KeyStore = concurrent.NewMap[string, string]()
+	r.TailStore = concurrent.NewMap[uint, types.Edge]()
+	r.NotificationService.Close()
+	r.NotificationService = NewNotificationService[uint, string]()
+	r.RoutingTable.Reset()
 }
 
 // Create a new RouteNode with an provided social network.
@@ -108,6 +116,7 @@ func (n *UserNode) sendRoute(routeLength uint, budget uint,
 }
 
 // Return the node public key.
+// It corresponds to its address.
 func (n *UserNode) getKey() string {
 	return n.conf.Socket.GetAddress()
 }
@@ -193,7 +202,7 @@ func (n *UserNode) nextHop(msg types.RouteMessage, sender string) (string, error
 }
 
 // A routing table to perform random routes.
-type SybilRoutingTable struct {
+type SocialRoutingTable struct {
 	lock         sync.RWMutex
 	socialProfil peer.SocialProfil
 	// A source to generate the permutations.
@@ -204,13 +213,10 @@ type SybilRoutingTable struct {
 	// The reverse routing permutations. If x -> perm(x) in routingPermutations,
 	// then perm(x) -> x in reversedRoutingPermutations.
 	reversedRoutingPermutations map[uint][]uint
-
-	suspectRouteID  uint
-	verifierRouteID uint
 }
 
-func NewSybilRoutingTable(routeSeed int64, socialProfil peer.SocialProfil) *SybilRoutingTable {
-	return &SybilRoutingTable{
+func NewSybilRoutingTable(routeSeed int64, socialProfil peer.SocialProfil) *SocialRoutingTable {
+	return &SocialRoutingTable{
 		socialProfil:                socialProfil,
 		routingPermutations:         make(map[uint][]uint),
 		permutationSource:           rand.New(rand.NewSource(routeSeed)),
@@ -218,12 +224,19 @@ func NewSybilRoutingTable(routeSeed int64, socialProfil peer.SocialProfil) *Sybi
 	}
 }
 
-func (s *SybilRoutingTable) GetSharedKey(neighbor string) (string, bool) {
+func (s *SocialRoutingTable) Reset() {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.routingPermutations = make(map[uint][]uint)
+	s.reversedRoutingPermutations = make(map[uint][]uint)
+}
+
+func (s *SocialRoutingTable) GetSharedKey(neighbor string) (string, bool) {
 	return s.socialProfil.GetSharedKey(neighbor)
 }
 
 // Returns a random neighbor and true if any, or false otherwise.
-func (s *SybilRoutingTable) GetRandomNeighbor() (string, bool) {
+func (s *SocialRoutingTable) GetRandomNeighbor() (string, bool) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	size := s.socialProfil.NumberOfRelation()
@@ -236,7 +249,7 @@ func (s *SybilRoutingTable) GetRandomNeighbor() (string, bool) {
 
 // Add a given permutation for the s-instance with the provided id.
 // It overwrite the potential present permutation.
-func (s *SybilRoutingTable) addRoutingPermutation(id uint, reversed bool) []uint {
+func (s *SocialRoutingTable) addRoutingPermutation(id uint, reversed bool) []uint {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	nbrNeighbors := s.socialProfil.NumberOfRelation()
@@ -263,7 +276,7 @@ func (s *SybilRoutingTable) addRoutingPermutation(id uint, reversed bool) []uint
 
 // Returns the next hop for the route with the provided id, when the route comes from the provided sender.
 // If reversed if true, the route uses the reverse permutation.
-func (s *SybilRoutingTable) GetNextHop(id uint, sender string, reversed bool) (string, error) {
+func (s *SocialRoutingTable) GetNextHop(id uint, sender string, reversed bool) (string, error) {
 	readHop := func(id uint, sender string, reversed bool) (string, bool, error) {
 		s.lock.RLock()
 		defer s.lock.RUnlock()
@@ -301,7 +314,7 @@ func (s *SybilRoutingTable) GetNextHop(id uint, sender string, reversed bool) (s
 	return nextHop, nil
 }
 
-func (s *SybilRoutingTable) nextHopWithPerm(neighbor string, perm []uint) (string, error) {
+func (s *SocialRoutingTable) nextHopWithPerm(neighbor string, perm []uint) (string, error) {
 	neighborIndex, ok := s.socialProfil.GetRelationIndex(neighbor)
 	if !ok {
 		return "", fmt.Errorf("neighbor %s is not a neighbor", neighbor)

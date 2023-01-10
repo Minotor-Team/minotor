@@ -43,18 +43,21 @@ func Test_Source_Seed(t *testing.T) {
 }
 
 func Test_For_Channels(t *testing.T) {
-	ch := make(chan int)
+	ch := make(chan int, 3)
 	go func() {
 		ch <- 1
 		time.Sleep(1 * time.Second)
 		ch <- 2
 		time.Sleep(1 * time.Second)
 		ch <- 3
-		close(ch)
 	}()
-
+	j := 0
 	for i := range ch {
 		t.Logf("i: %d", i)
+		j++
+		if j == 3 {
+			break
+		}
 	}
 }
 
