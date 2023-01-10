@@ -12,10 +12,12 @@ import (
 // - implements types.Message
 // - implemented in HW3
 type PaxosPrepareMessage struct {
+	Type PaxosType
 	Step uint
 	ID   uint
 	// Source is the address of the peer that sends the prepare
 	Source string
+	Value  *PaxosValue
 }
 
 // PaxosPromiseMessage defines a promise message in Paxos
@@ -23,6 +25,7 @@ type PaxosPrepareMessage struct {
 // - implements types.Message
 // - implemented in HW3
 type PaxosPromiseMessage struct {
+	Type PaxosType
 	Step uint
 	ID   uint
 
@@ -37,6 +40,7 @@ type PaxosPromiseMessage struct {
 // - implements types.Message
 // - implemented in HW3
 type PaxosProposeMessage struct {
+	Type  PaxosType
 	Step  uint
 	ID    uint
 	Value PaxosValue
@@ -47,6 +51,7 @@ type PaxosProposeMessage struct {
 // - implements types.Message
 // - implemented in HW3
 type PaxosAcceptMessage struct {
+	Type  PaxosType
 	Step  uint
 	ID    uint
 	Value PaxosValue
@@ -57,6 +62,7 @@ type PaxosAcceptMessage struct {
 // - implements types.Message
 // - implemented in HW3
 type TLCMessage struct {
+	Type  PaxosType
 	Step  uint
 	Block BlockchainBlock
 }
@@ -70,6 +76,13 @@ type PaxosValue struct {
 	Filename string
 	Metahash string
 }
+
+type PaxosType string
+
+const (
+	Tag      PaxosType = "tag"
+	Identity PaxosType = "identity"
+)
 
 // String returns a string representation.
 func (p PaxosValue) String() string {

@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <title>CS438 - Peerster</title>
@@ -7,10 +7,20 @@
 </head>
 <body>
     <div>
-        <h1>Enter the peer's proxy address</h1>
+        <h1>Welcome on Minotor!</h1>
+        <h2>Please enter the following information to connect</h2>
         <form action="node.html" method="get">
-            <input name="addr" type="text" id="addr" placeholder="127.0.0.1:0"/><input type="submit" value="let's go" />
+            <input name="name" type="text" id="name" placeholder="Louis Dupont"/>
+            <br/>
+            <input name="email" type="email" id="email" placeholder="mail@epfl.ch"/>
+            <br/>
+            <input name="phone" type="tel" id="phone" placeholder="+41612345678"/>
+            <br/>
+            <input name="addr" type="text" id="addr" placeholder="127.0.0.1:0"/>
+            <br/>
+            <input type="submit" value="Connect" />
         </form>
+        <a href="signup.html" class="signup">Sign Up</a>
     </div>
 </body>
 </html>

@@ -24,7 +24,8 @@ type node struct {
 	requestsHandler *channelsHandler
 	store           *store
 	searchsHandler  *channelsHandler
-	paxosHandler    *paxosHandler
+	tagHandler      *paxosHandler
+	identityHandler *paxosHandler
 }
 
 // Wraps up the node implemented until HW3 in a structure for high abstraction on what was
@@ -48,7 +49,8 @@ func NewPeersterNode(conf peer.Configuration) *PeersterNode {
 		requestsHandler: newChannelsHandler(),
 		store:           newStore(),
 		searchsHandler:  newChannelsHandler(),
-		paxosHandler:    newPaxosHandler(conf),
+		tagHandler:      newPaxosHandler(conf, types.Tag),
+		identityHandler: newPaxosHandler(conf, types.Identity),
 	}
 
 	myAddr := node.soc.GetAddress()

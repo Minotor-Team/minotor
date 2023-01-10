@@ -12,6 +12,8 @@ import (
 // the interfaces that will have to be implemented.
 type Peer interface {
 	Service
+	IdentityVerifier
+	SybilVerifier
 	Messaging
 	DataSharing
 	User

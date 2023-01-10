@@ -23,6 +23,7 @@ const main = function () {
     application.register("dataSharing", DataSharing);
     application.register("search", Search);
     application.register("naming", Naming);
+    application.register("verification", Verification);
 
     initCollapsible();
 };
@@ -137,17 +138,25 @@ class Flash extends Stimulus.Controller {
 
 class PeerInfo extends Stimulus.Controller {
     static get targets() {
-        return ["peerAddr", "socketAddr"];
+        return ["name", "email", "phone", "peerAddr", "socketAddr", "approval"];
     }
 
     async initialize() {
         const queryDict = this.getQueryArgs();
-
+        const name = decodeURIComponent(queryDict["name"]).replace("+", " ");
+        const email = decodeURIComponent(queryDict["email"]);
+        const phone = decodeURIComponent(queryDict["phone"]);
         const endpoint = "http://" + decodeURIComponent(queryDict["addr"]);
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
         this.endpoint = endpoint;
-
+        this.approval = "No";
+        this.nameTarget.innerText = this.name;
+        this.emailTarget.innerText = this.email;
+        this.phoneTarget.innerText = this.phone;
         this.peerAddrTarget.innerText = this.endpoint;
-        console.log(this.endpoint);
+        this.approvalTarget.innerText = this.approval;
 
         const addr = this.endpoint + "/socket/address";
 
@@ -254,7 +263,6 @@ class Unicast extends BaseElement {
         return this.application.getControllerForElementAndIdentifier(element, "messaging");
     }
 }
-
 
 class Routing extends BaseElement {
     static get targets() {
@@ -829,6 +837,45 @@ class Naming extends BaseElement {
             this.flash.printSuccess("tagging done");
         } catch (e) {
             this.flash.printError("failed to tag filename: " + e);
+        }
+    }
+}
+
+class Verification extends BaseElement {
+    static get targets() {
+        return ["approval"];
+    }
+
+    async approval() {
+        const addr = this.peerInfo.getAPIURL("/verification/identity");
+
+        const info = {
+            "Name": this.peerInfo.name,
+            "Email": this.peerInfo.email,
+            "Phone": this.peerInfo.phone
+        };
+
+        const fetchArgs = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(info)
+        };
+
+        try {
+            this.flash.printSuccess("Your identity will be verified soon.");
+            const resp = await this.fetch(addr, fetchArgs);
+            const text = await resp.text();
+            const connected = JSON.parse(text).connected;
+            if (connected) {
+                this.peerInfo.approvalTarget.innerText = "Yes";
+                this.flash.printSuccess("Welcome " + this.peerInfo.name + "! Your identity has been successfully verified.");
+            } else {
+                this.flash.printError("You have been rejected from the network!");
+            }
+        } catch (e) {
+            this.flash.printError("failed to send identity check: " + e);
         }
     }
 }

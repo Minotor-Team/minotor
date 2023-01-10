@@ -7,6 +7,12 @@ import (
 // AddPeerArgument is the json type to call messaging.AddPeer()
 type AddPeerArgument []string
 
+type IdentityArgument struct {
+	Name  string
+	Email string
+	Phone string
+}
+
 // UnicastArgument is the json type to call messaging.Unicast()
 type UnicastArgument struct {
 	Dest string

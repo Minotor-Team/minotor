@@ -29,24 +29,51 @@ h1 {
     font-size: 3.5em;
 }
 
-input[type="text"] {
+h2 {
+    font-weight: 200;
+    font-size: 2em;
+}
+
+input[type="text"], [type="email"], [type="tel"] {
     padding: 20px 30px;
+    width: 350px;
     font-size: 1em;
-    margin: 0;
+    margin-bottom: 5px;
+    border-radius: 10px;
     border: none;
+    outline: none;
 }
 
 input[type="submit"] {
     padding: 20px 30px;
-    margin: 0;
+    width: 410px;
+    margin-bottom: 25px;
     font-size: 1em;
     border: none;
     cursor: pointer;
     color: #fff;
     background-color: #29e48c;
+    border-radius: 10px;
     transition: all 200ms;
 }
 
 input[type="submit"]:hover {
     background-color: #199b5e;
 }
+
+.signup {
+    text-decoration: none;
+    padding: 20px 150px;
+    font-size: 1em;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    background-color: rgb(230, 51, 51);
+    border-radius: 10px;
+}
+
+.signup:hover {
+    background-color: rgb(184, 46, 46);
+}
+
+
