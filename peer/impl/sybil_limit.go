@@ -1,9 +1,14 @@
 package impl
 
 import (
+	"go.dedis.ch/cs438/datastructures"
 	"go.dedis.ch/cs438/types"
 	"golang.org/x/xerrors"
 )
+
+func (n *UserNode) GetSybilNodes() datastructures.Set[string] {
+	return n.verifier.rejectedSuspects
+}
 
 // implements peer.SybilLimitProtocol
 func (n *UserNode) SuspectSecureRandomRouteProtocol() error {
@@ -92,40 +97,63 @@ func (n *UserNode) HandleSuspectRouteDone(msg types.SuspectRouteProtocolDone, se
 // implements peer.SybilLimitProtocol
 func (n *UserNode) VerificationProtocol() error {
 	// Test is it can verify.
-	v, ok := <-n.pendingSuspectTails
-	for ok {
+	v, isChannelOpen := <-n.pendingSuspectTails
+	for isChannelOpen {
 		// 1. The verifier receives the tails from suspects.
+		suspect := v.Suspect
 		suspectTails := v.Tails
 		intersection := n.verifier.Intersection(suspectTails)
 		instanceNumbers := make([]uint, 0)
 		for instanceNbr, tail := range intersection {
-			isRegistered := func(suspect string, tail types.Edge) bool {
-				panic("Asks the end of the tail if the suspect is registered under To->From")
-			}
+			isRegistered := func(suspect string, tail types.Edge) (bool, error) {
+				query := types.VerifierRegistrationQuery{
+					Suspect: suspect,
+					Tail:    tail,
+				}
 
-			if isRegistered(v.Suspect, tail) {
+				unicast := func() error {
+					dest := tail.To
+					msg, err := n.conf.MessageRegistry.MarshalMessage(query)
+					if err != nil {
+						return xerrors.Errorf("failed to marshall the message: %v", err)
+					}
+
+					return n.Unicast(dest, msg)
+				}
+
+				isRegistered, err := n.verifier.notificationService.ExecuteAndWait(unicast, instanceNbr, n.conf.VerifierRegistrationTimeout)
+				if err != nil {
+					return isRegistered, xerrors.Errorf("isRegistered: %v", err)
+				}
+				return isRegistered, nil
+			}
+			ok, err := isRegistered(v.Suspect, tail)
+			if err != nil {
+				return xerrors.Errorf("VerificationProtocol: %v", err)
+			}
+			if ok {
 				instanceNumbers = append(instanceNumbers, instanceNbr)
 			}
 		}
 		if len(intersection) == 0 {
-			panic("Reject the suspect")
+			n.verifier.Reject(suspect)
 		}
 
 		instance, load, ok := n.verifier.MinimunLoadInstanceNumber(instanceNumbers)
 		if !ok {
-			panic("Reject the suspect")
+			n.verifier.Reject(suspect)
 		}
 
 		if !n.verifier.SatisfiesSybilBound(load) {
-			panic("Reject the suspect")
+			n.verifier.Reject(suspect)
 		}
 
 		// The suspect satisfies the two conditions, we accept it.
 		n.verifier.IncrementLoad(instance)
-		panic("Accept the suspect")
-		v, ok = <-n.pendingSuspectTails
+		v, isChannelOpen = <-n.pendingSuspectTails
 	}
-	panic("To be implemented")
+
+	return nil
 }
 
 type rangedIndex struct {

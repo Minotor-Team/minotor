@@ -126,13 +126,6 @@ func (n *UserNode) handleFollowRequest(msgType types.Message, pkt transport.Pack
 
 type Tails = map[uint]types.Edge
 
-// A data structure to compute the intersection condition efficiently.
-// We say that two edges E1 = A->B and E2 = C->D intersects if
-// A = C and B = D or A = D and B = C
-type TailSet struct {
-	set map[string][]uint
-}
-
 type Verifier struct {
 	tails map[uint]types.Edge
 	// A data structure to compute instersections efficiently.
@@ -147,6 +140,21 @@ type Verifier struct {
 	// Corresponds to the parameter b in the paper.
 	// Dynamic upper bound to the number of sybil node accepted by attack edge.
 	sybilBound float64
+
+	// A notification service for registration query
+	notificationService peer.NotificationService[uint, bool]
+
+	// A set of rejected suspects
+	rejectedSuspects datastructures.Set[string]
+}
+
+func NewVerifier(routeLength uint) *Verifier {
+	return &Verifier{
+		tails:                make(map[uint]types.Edge),
+		tailsSet:             make(map[types.Edge][]uint),
+		verifierBalanceLoads: make([]uint, routeLength),
+		notificationService:  NewNotificationService[uint, bool](),
+	}
 }
 
 func (v *Verifier) AddTails(tails Tails) {
@@ -172,6 +180,10 @@ func (v *Verifier) Intersection(tails Tails) Tails {
 	}
 	return intersection
 
+}
+
+func (v *Verifier) Reject(suspect string) {
+	v.rejectedSuspects.Add(suspect)
 }
 
 // Returns true if the value is below the sybil upper bound.

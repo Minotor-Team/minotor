@@ -105,6 +105,9 @@ type Configuration struct {
 
 	// The timeout for the route protocol.
 	RouteTimeout time.Duration
+
+	// The timeout for the registration query made by a verifier.
+	VerifierRegistrationTimeout time.Duration
 }
 
 // Backoff describes parameters for a backoff algorithm. The initial time must

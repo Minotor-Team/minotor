@@ -25,7 +25,7 @@ type RouteManager struct {
 	KeyStore concurrent.Map[string, string]
 	// Stores the tail of a route by id.
 	TailStore           concurrent.Map[uint, types.Edge]
-	NotificationService notificationService
+	NotificationService peer.NotificationService[uint, string]
 }
 
 func NewRouteManager(routeSeed int64, socialProfile peer.SocialProfil) *RouteManager {
@@ -33,7 +33,7 @@ func NewRouteManager(routeSeed int64, socialProfile peer.SocialProfil) *RouteMan
 		RoutingTable:        NewSybilRoutingTable(routeSeed, socialProfile),
 		KeyStore:            concurrent.NewMap[string, string](),
 		TailStore:           concurrent.NewMap[uint, types.Edge](),
-		NotificationService: newNotificationService(),
+		NotificationService: NewNotificationService[uint, string](),
 	}
 }
 
@@ -70,9 +70,9 @@ func (n *UserNode) StartRandomRoute(budget uint, id uint, timeout time.Duration,
 	}
 
 	// Wait for the route to be completed
-	tail, ok := n.routeManager.NotificationService.Wait(id, timeout)
-	if !ok {
-		return "", xerrors.Errorf("StartRandomRoute{id: %v}: timeout reached", id)
+	tail, err := n.routeManager.NotificationService.Wait(id, timeout)
+	if err != nil {
+		return "", xerrors.Errorf("StartRandomRoute{id: %v}: %v", id, err)
 	}
 	return tail, nil
 }
@@ -308,57 +308,4 @@ func (s *SybilRoutingTable) nextHopWithPerm(neighbor string, perm []uint) (strin
 	}
 	nextHopIndex := perm[neighborIndex]
 	return s.socialProfil.GetRelation(nextHopIndex), nil
-}
-
-// A notification service to notify the completion of the route.
-type notificationService struct {
-	lock     sync.RWMutex
-	channels map[uint]*chan string
-}
-
-func newNotificationService() notificationService {
-	return notificationService{
-		channels: make(map[uint]*chan string),
-	}
-}
-
-// Wait for the notification of the route with the given id.
-// Returns the tail of the route and true, if it succeeded within the timeout.
-// Returns false otherwise.
-// A timeout of 0 means that the function will wait indefinitely.
-func (n *notificationService) Wait(id uint, timeout time.Duration) (string, bool) {
-	timer := time.NewTimer(timeout)
-	ch := make(chan string, 1)
-	n.lock.Lock()
-	n.channels[id] = &ch
-	n.lock.Unlock()
-
-	if timeout > 0 {
-		select {
-		case v, ok := <-ch:
-			return v, ok
-		case <-timer.C:
-			// We ensure that no one can notify for this id anymore.
-			n.lock.Lock()
-			delete(n.channels, id)
-			n.lock.Unlock()
-			return "", false
-		}
-	} else {
-		v, ok := <-ch
-		return v, ok
-	}
-
-}
-
-func (n *notificationService) Notify(id uint, data string) bool {
-	n.lock.Lock()
-	defer n.lock.Unlock()
-	ch, ok := n.channels[id]
-	if !ok {
-		return false
-	}
-	*ch <- data
-	delete(n.channels, id)
-	return true
 }

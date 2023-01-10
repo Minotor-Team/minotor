@@ -4,14 +4,14 @@ import (
 	"sync"
 	"time"
 
+	"go.dedis.ch/cs438/datastructures"
 	"go.dedis.ch/cs438/types"
 )
 
-// TODO:
-// Remove embedding, and add functionalities directly to the peer.
-// Even if embedding allows to define clear layers, it is too hard to adapt the tests.
-// The only exposed methods is getSybilNodes(). The SybilProtocol runs under the hood at a regular
-// time interval.
+type SybilVerifier interface {
+	// Returns a list of potential sybil nodes
+	GetSybilNodes() datastructures.Set[string]
+}
 
 // A SybilLimit node is a suspect and a verifier.
 // It conforms to the two-phase protocol described in the paper.
